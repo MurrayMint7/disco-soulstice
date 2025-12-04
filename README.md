@@ -2,8 +2,8 @@
 
 ## TODO
 
-- [ ] Make it Deploy on vercel
-- [ ] Scaffold UI with mock data
+- [x] Make it Deploy on vercel
+- [x] Scaffold UI with mock data
 - [ ] Set up DB? Needed? 
 - [ ] Clerk auth? Needed?
 - [ ] Error Management w/ Sentry*
