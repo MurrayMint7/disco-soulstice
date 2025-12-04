@@ -1,11 +1,32 @@
 
 export function Header() {
-    return(
-        <nav className="bg-background w-full flex items-center justify-between px-8 py-6 text-sm font-medium tracking-widest uppercase">
-            <div className="text-primary hover:text-secondary transition-colors cursor-pointer">About</div>
-            <div className="text-primary hover:text-secondary transition-colors cursor-pointer">Events</div>
-            <div className="text-primary hover:text-secondary transition-colors cursor-pointer">Gallery</div>
-            <div className="text-primary hover:text-secondary transition-colors cursor-pointer">Contact</div>
+    return (
+        <nav className="absolute top-0 left-0 right-0 z-50 w-full flex items-center justify-between px-16 pt-8 pb-16 text-lg font-bold tracking-[0.3em] uppercase">
+            {/* Warm gradient overlay for vintage feel */}
+            <div className="absolute inset-0 bg-gradient-to-b from-amber-950/80 via-orange-900/40 to-transparent pointer-events-none" />
+            
+            <NavLink>About</NavLink>
+            <NavLink>Events</NavLink>
+            <NavLink>Gallery</NavLink>
+            <NavLink>Team</NavLink>
+            <NavLink>Contact</NavLink>
         </nav>
+    );
+}
+
+function NavLink({ children }: { children: React.ReactNode }) {
+    return (
+        <div className="relative group cursor-pointer">
+            {/* Glow effect behind text */}
+            <div className="absolute inset-0 blur-lg bg-amber-500/0 group-hover:bg-amber-500/60 transition-all duration-500 scale-150" />
+            
+            {/* Main text with vintage styling */}
+            <span className="relative text-amber-100 group-hover:text-amber-300 transition-all duration-300 drop-shadow-[0_0_10px_rgba(251,191,36,0.3)] group-hover:drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]">
+                {children}
+            </span>
+            
+            {/* Decorative underline with disco sparkle */}
+            <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent group-hover:w-full transition-all duration-500 shadow-[0_0_10px_rgba(251,191,36,0.8)]" />
+        </div>
     );
 }
