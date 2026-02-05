@@ -1,4 +1,5 @@
 import { Header } from "../_components/header";
+import Image from "next/image";
 
 // Mock event data - replace with real data from your database later
 const events = [
@@ -132,7 +133,7 @@ function EventCard({ event, index }: { event: Event; index: number }) {
       >
         {/* Image */}
         <div className="relative aspect-[4/3] rounded-2xl overflow-hidden md:[direction:ltr]">
-          <img
+          <Image
             src={event.image}
             alt={event.title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
