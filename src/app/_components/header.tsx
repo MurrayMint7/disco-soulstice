@@ -9,12 +9,12 @@ export function Header() {
 
       <div className="relative z-10 flex items-center justify-between px-6 md:px-12 lg:px-16 py-4">
         {/* Logo */}
-        <Link href="/" className="group flex-shrink-0">
+        <Link href="/" className="group flex-shrink-0 -my-2">
           <Image
             src="/logo.png"
             alt="Disco Soulstice Logo"
-            width={80}
-            height={80}
+            width={120}
+            height={120}
             className="transition-all duration-500 group-hover:scale-105 group-hover:drop-shadow-[0_0_20px_rgba(232,121,26,0.6)]"
           />
         </Link>

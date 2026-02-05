@@ -166,7 +166,7 @@ export default async function Home() {
           <div className="warm-divider max-w-32 mx-auto mb-8" />
 
           <p className="font-body text-[#f5e6d0]/70 text-lg md:text-xl leading-relaxed mb-6">
-            Disco Soulstice is a crew of crate-diggers and groove enthusiasts
+            Disco Soulstice is a crew of groove enthusiasts
             bringing together the finest in disco, funk, house and global groove.
             Born from late-night vinyl sessions and a shared love for the
             dancefloor.
@@ -199,6 +199,8 @@ export default async function Home() {
               <Image
                 src={heroImage}
                 alt="The Groove Assembly"
+                width={800}
+                height={600}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               {/* Warm color wash */}
