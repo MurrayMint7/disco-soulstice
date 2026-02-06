@@ -74,7 +74,7 @@ export default function EventsPage() {
       <section className="relative px-4 sm:px-6 pb-16 sm:pb-24 md:pb-32">
         <div className="max-w-5xl mx-auto space-y-16 sm:space-y-20 md:space-y-28">
           {events.map((event, index) => (
-            <EventCard key={event.id} event={event} index={index} />
+            <EventCard key={event.id} event={event} index={index} isLast={index === events.length - 1} />
           ))}
         </div>
       </section>
@@ -104,7 +104,7 @@ interface Event {
   status: "on-sale" | "coming-soon" | "sold-out";
 }
 
-function EventCard({ event, index }: { event: Event; index: number }) {
+function EventCard({ event, index, isLast }: { event: Event; index: number; isLast: boolean }) {
   const isReversed = index % 2 !== 0;
 
   return (
@@ -238,7 +238,7 @@ function EventCard({ event, index }: { event: Event; index: number }) {
       </div>
 
       {/* Divider between events */}
-      <div className="warm-divider mt-16 sm:mt-20 md:mt-28" />
+      {!isLast && <div className="warm-divider mt-16 sm:mt-20 md:mt-28" />}
     </article>
   );
 }
