@@ -1,11 +1,5 @@
 @import "tailwindcss";
 
-/* ==========================================================================
-   DISCO SOULSTICE — "Amber Glow" Design System
-   Inspired by: IKEA orange donut wall light, 70s velvet lounges,
-   warm analog warmth, wood paneling, shag carpet coziness.
-   ========================================================================== */
-
 :root {
   /* Core palette — deep chocolate to warm cream */
   --ds-brown-950: #1a0e08;
@@ -73,6 +67,22 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  /* Disco Soulstice color palette */
+  --color-brown-950: var(--ds-brown-950);
+  --color-brown-900: var(--ds-brown-900);
+  --color-brown-800: var(--ds-brown-800);
+  --color-brown-700: var(--ds-brown-700);
+  --color-brown-600: var(--ds-brown-600);
+  --color-orange-700: var(--ds-orange-700);
+  --color-orange-600: var(--ds-orange-600);
+  --color-orange-500: var(--ds-orange-500);
+  --color-amber-500: var(--ds-amber-500);
+  --color-amber-400: var(--ds-amber-400);
+  --color-amber-300: var(--ds-amber-300);
+  --color-cream-200: var(--ds-cream-200);
+  --color-cream-100: var(--ds-cream-100);
+  --color-cream-50: var(--ds-cream-50);
+
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
@@ -112,6 +122,12 @@ body {
   font-family: "Abril Fatface", serif;
 }
 
+
+.font-display-spaced {
+  font-family: "Abril Fatface", serif;
+  letter-spacing: 0.10em;
+}
+
 .font-body {
   font-family: var(--font-body);
 }
@@ -120,7 +136,7 @@ body {
 .hero-title {
   font-family: "Abril Fatface", serif;
   font-weight: 900;
-  font-size: clamp(3rem, 12vw, 10rem);
+  font-size: clamp(2.5rem, 14vw, 10rem);
   line-height: 0.95;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -131,7 +147,7 @@ body {
 .section-title {
   font-family: "Abril Fatface", serif;
   font-weight: 700;
-  font-size: clamp(2rem, 5vw, 4rem);
+  font-size: clamp(1.75rem, 5vw, 4rem);
   line-height: 1.1;
   letter-spacing: 0.02em;
 }
@@ -244,13 +260,15 @@ body {
 .btn-primary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 2rem;
+  padding: 0.875rem 1.5rem;
+  min-height: 48px;
   background: linear-gradient(135deg, var(--ds-orange-600), var(--ds-orange-500));
   color: var(--ds-cream-50);
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   border: none;
@@ -258,6 +276,13 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 0 20px rgba(232, 121, 26, 0.3);
+}
+
+@media (min-width: 640px) {
+  .btn-primary {
+    padding: 0.875rem 2rem;
+    font-size: 0.875rem;
+  }
 }
 
 .btn-primary:hover {
@@ -269,19 +294,28 @@ body {
 .btn-outline {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 2rem;
+  padding: 0.875rem 1.5rem;
+  min-height: 48px;
   background: transparent;
   color: var(--ds-amber-400);
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   border: 1.5px solid var(--ds-amber-400);
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+@media (min-width: 640px) {
+  .btn-outline {
+    padding: 0.875rem 2rem;
+    font-size: 0.875rem;
+  }
 }
 
 .btn-outline:hover {
@@ -299,8 +333,8 @@ body {
 /* --- Starburst Rays --- */
 .starburst-container {
   position: relative;
-  width: 160vh;
-  height: 160vh;
+  width: min(160vh, 160vw);
+  height: min(160vh, 160vw);
 }
 
 .starburst-ray {
@@ -456,17 +490,27 @@ body {
 /* --- Genre Chips --- */
 .genre-chip {
   font-family: var(--font-body);
-  font-size: 0.65rem;
+  font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: rgba(250, 208, 122, 0.7);
-  padding: 0.35rem 1rem;
+  padding: 0.4rem 0.875rem;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
   border: 1px solid rgba(232, 121, 26, 0.2);
   border-radius: 999px;
   background: rgba(232, 121, 26, 0.05);
   backdrop-filter: blur(4px);
   transition: all 0.4s ease;
+}
+
+@media (min-width: 640px) {
+  .genre-chip {
+    font-size: 0.65rem;
+    padding: 0.35rem 1rem;
+  }
 }
 
 .genre-chip:hover {

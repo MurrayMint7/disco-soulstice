@@ -1,7 +1,7 @@
 import "~/styles/globals.css";
 
 import { type Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Abril_Fatface, Inter } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
 
@@ -11,10 +11,10 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-const playfair = Playfair_Display({
+const abrilFatface = Abril_Fatface({
   subsets: ["latin"],
   variable: "--font-art-nuvo",
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["400"],
 });
 
 const inter = Inter({
@@ -27,7 +27,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
+    <html lang="en" className={`${abrilFatface.variable} ${inter.variable}`}>
       <body className="noise-overlay">
         <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>

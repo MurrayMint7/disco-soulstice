@@ -1,3 +1,4 @@
+import { Footer } from "../_components/footer";
 import { Header } from "../_components/header";
 import Image from "next/image";
 
@@ -34,34 +35,34 @@ const events = [
 
 export default function EventsPage() {
   return (
-    <main className="min-h-screen bg-[#1a0e08]">
+    <main className="min-h-screen bg-background">
       <Header />
 
       {/* ================================================================
           HERO — Events page header
           ================================================================ */}
-      <section className="relative pt-36 pb-20 md:pt-44 md:pb-28 px-6 overflow-hidden">
+      <section className="relative pt-28 pb-16 sm:pt-36 sm:pb-20 md:pt-44 md:pb-28 px-4 sm:px-6 overflow-hidden">
         {/* Background texture */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#2d1810] via-[#1a0e08] to-[#1a0e08]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-brown-900 via-background to-background" />
         {/* Amber glow at top */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[radial-gradient(ellipse,rgba(232,121,26,0.1)_0%,transparent_70%)] pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[300px] sm:h-[400px] bg-[radial-gradient(ellipse,rgba(232,121,26,0.1)_0%,transparent_70%)] pointer-events-none" />
 
         <div className="relative z-10 max-w-5xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-2 h-2 rounded-full bg-[#e8791a]" />
-            <span className="font-body text-[#fad07a]/60 text-xs tracking-[0.2em] uppercase">
+            <div className="w-2 h-2 rounded-full bg-primary" />
+            <span className="font-body text-amber-300/60 text-xs tracking-[0.2em] uppercase">
               What&apos;s On
             </span>
-            <div className="flex-1 h-px bg-[#5c3a28]/50" />
+            <div className="flex-1 h-px bg-border/50" />
           </div>
 
-          <h1 className="section-title text-[#faf3e8] mb-6">
+          <h1 className="section-title text-foreground mb-4 sm:mb-6">
             Upcoming
             <br />
-            <span className="italic text-[#f4a236]">Events</span>
+            <span className="italic text-accent">Events</span>
           </h1>
 
-          <p className="font-body text-[#f5e6d0]/50 text-lg max-w-xl leading-relaxed">
+          <p className="font-body text-cream-200/50 text-base sm:text-lg max-w-xl leading-relaxed">
             Every night is a journey. Find your next groove below.
           </p>
         </div>
@@ -70,8 +71,8 @@ export default function EventsPage() {
       {/* ================================================================
           EVENTS LIST
           ================================================================ */}
-      <section className="relative px-6 pb-24 md:pb-32">
-        <div className="max-w-5xl mx-auto space-y-20 md:space-y-28">
+      <section className="relative px-4 sm:px-6 pb-16 sm:pb-24 md:pb-32">
+        <div className="max-w-5xl mx-auto space-y-16 sm:space-y-20 md:space-y-28">
           {events.map((event, index) => (
             <EventCard key={event.id} event={event} index={index} />
           ))}
@@ -81,25 +82,7 @@ export default function EventsPage() {
       {/* ================================================================
           FOOTER
           ================================================================ */}
-      <footer className="relative py-16 px-6 border-t border-[#5c3a28]/30">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex items-center gap-4">
-              <div className="w-3 h-3 rounded-full bg-[#e8791a] shadow-[0_0_12px_rgba(232,121,26,0.5)]" />
-              <span className="font-display text-xl font-bold text-[#faf3e8] tracking-wide">
-                Disco Soulstice
-              </span>
-            </div>
-            <p className="font-body text-[#f5e6d0]/30 text-sm tracking-wide">
-              Follow the groove · @discosoulstice
-            </p>
-          </div>
-          <div className="warm-divider my-8" />
-          <p className="font-body text-[#f5e6d0]/20 text-xs text-center tracking-wider">
-            © 2026 Disco Soulstice. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }
@@ -127,20 +110,22 @@ function EventCard({ event, index }: { event: Event; index: number }) {
   return (
     <article className="group">
       <div
-        className={`grid md:grid-cols-2 gap-8 md:gap-14 items-center ${
+        className={`grid md:grid-cols-2 gap-6 sm:gap-8 md:gap-14 items-center ${
           isReversed ? "md:[direction:rtl]" : ""
         }`}
       >
         {/* Image */}
-        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden md:[direction:ltr]">
+        <div className="relative aspect-[16/10] sm:aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden md:[direction:ltr]">
           <Image
             src={event.image}
             alt={event.title}
+            width={800}
+            height={600}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           {/* Warm overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1a0e08]/50 via-transparent to-[#1a0e08]/20" />
-          <div className="absolute inset-0 mix-blend-multiply bg-gradient-to-br from-[#e8791a]/5 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-background/20" />
+          <div className="absolute inset-0 mix-blend-multiply bg-gradient-to-br from-primary/5 to-transparent" />
           {/* Inner glow */}
           <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_60px_rgba(232,121,26,0.08)] group-hover:shadow-[inset_0_0_80px_rgba(232,121,26,0.15)] transition-all duration-500" />
 
@@ -154,13 +139,13 @@ function EventCard({ event, index }: { event: Event; index: number }) {
         <div className="md:[direction:ltr]">
           {/* Date */}
           <div className="flex items-center gap-3 mb-4">
-            <span className="font-body text-[#e8791a] text-sm font-semibold tracking-[0.15em] uppercase">
+            <span className="font-body text-primary text-sm font-semibold tracking-[0.15em] uppercase">
               {event.date}
             </span>
             {event.day && (
               <>
-                <span className="w-1 h-1 rounded-full bg-[#5c3a28]" />
-                <span className="font-body text-[#fad07a]/50 text-sm">
+                <span className="w-1 h-1 rounded-full bg-secondary" />
+                <span className="font-body text-amber-300/50 text-sm">
                   {event.day}
                 </span>
               </>
@@ -168,7 +153,7 @@ function EventCard({ event, index }: { event: Event; index: number }) {
           </div>
 
           {/* Title */}
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-[#faf3e8] mb-4 leading-tight group-hover:text-[#f4a236] transition-colors duration-300">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-3 sm:mb-4 leading-tight group-hover:text-accent transition-colors duration-300">
             {event.title}
           </h2>
 
@@ -176,9 +161,9 @@ function EventCard({ event, index }: { event: Event; index: number }) {
 
           {/* Venue & Time */}
           <div className="space-y-2 mb-6">
-            <p className="font-body text-[#f5e6d0]/80 flex items-center gap-3 text-sm">
+            <p className="font-body text-cream-200/80 flex items-center gap-3 text-sm">
               <svg
-                className="w-4 h-4 text-[#e8791a] flex-shrink-0"
+                className="w-4 h-4 text-primary flex-shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -197,9 +182,9 @@ function EventCard({ event, index }: { event: Event; index: number }) {
               </svg>
               {event.venue} · {event.location}
             </p>
-            <p className="font-body text-[#f5e6d0]/80 flex items-center gap-3 text-sm">
+            <p className="font-body text-cream-200/80 flex items-center gap-3 text-sm">
               <svg
-                className="w-4 h-4 text-[#e8791a] flex-shrink-0"
+                className="w-4 h-4 text-primary flex-shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -217,7 +202,7 @@ function EventCard({ event, index }: { event: Event; index: number }) {
 
           {/* Description */}
           {event.description && (
-            <p className="font-body text-[#f5e6d0]/50 text-sm leading-relaxed mb-8 max-w-lg">
+            <p className="font-body text-cream-200/50 text-sm leading-relaxed mb-6 sm:mb-8 max-w-lg">
               {event.description}
             </p>
           )}
@@ -245,7 +230,7 @@ function EventCard({ event, index }: { event: Event; index: number }) {
               Details Coming Soon
             </div>
           ) : (
-            <div className="font-body text-[#f5e6d0]/30 text-sm tracking-wider uppercase">
+            <div className="font-body text-cream-200/30 text-sm tracking-wider uppercase">
               Sold Out
             </div>
           )}
@@ -253,7 +238,7 @@ function EventCard({ event, index }: { event: Event; index: number }) {
       </div>
 
       {/* Divider between events */}
-      <div className="warm-divider mt-20 md:mt-28" />
+      <div className="warm-divider mt-16 sm:mt-20 md:mt-28" />
     </article>
   );
 }
@@ -261,9 +246,9 @@ function EventCard({ event, index }: { event: Event; index: number }) {
 function StatusBadge({ status }: { status: "on-sale" | "coming-soon" | "sold-out" }) {
   if (status === "on-sale") {
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1a0e08]/80 backdrop-blur-sm border border-[#e8791a]/30 rounded-full">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#e8791a] shadow-[0_0_6px_rgba(232,121,26,0.8)] animate-pulse" />
-        <span className="font-body text-[#fad07a] text-xs font-medium tracking-wider uppercase">
+      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-background/80 backdrop-blur-sm border border-primary/30 rounded-full">
+        <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_rgba(232,121,26,0.8)] animate-pulse" />
+        <span className="font-body text-amber-300 text-xs font-medium tracking-wider uppercase">
           On Sale
         </span>
       </span>
@@ -271,17 +256,17 @@ function StatusBadge({ status }: { status: "on-sale" | "coming-soon" | "sold-out
   }
   if (status === "coming-soon") {
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1a0e08]/80 backdrop-blur-sm border border-[#5c3a28]/40 rounded-full">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#fad07a]/50" />
-        <span className="font-body text-[#fad07a]/60 text-xs font-medium tracking-wider uppercase">
+      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-background/80 backdrop-blur-sm border border-border/40 rounded-full">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-300/50" />
+        <span className="font-body text-amber-300/60 text-xs font-medium tracking-wider uppercase">
           Coming Soon
         </span>
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1a0e08]/80 backdrop-blur-sm border border-[#5c3a28]/30 rounded-full">
-      <span className="font-body text-[#f5e6d0]/30 text-xs font-medium tracking-wider uppercase">
+    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-background/80 backdrop-blur-sm border border-border/30 rounded-full">
+      <span className="font-body text-cream-200/30 text-xs font-medium tracking-wider uppercase">
         Sold Out
       </span>
     </span>
