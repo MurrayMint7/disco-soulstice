@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Header } from "./_components/header";
 import Image from "next/image";
 import { Footer } from "./_components/footer";
-import { InteractiveVinyl } from "./_components/interactive-vinyl";
+import  Hero  from "./_components/hero";
 
 const heroImage =
   "https://dnm1fy55wi.ufs.sh/f/nVG6HkSaVLokJ76SIUfPhnczD5kSldACG4Ttuv7WRXVOE89f";
@@ -13,10 +13,71 @@ export default async function Home() {
       <Header />
 
       {/* ================================================================
-          HERO — "Vinyl Vortex" — Interactive geometric disco
+          HERO — "Vinyl Vortex" — Pure CSS geometric disco
           ================================================================ */}
-      <InteractiveVinyl />
+      <section className="relative w-full h-screen overflow-hidden flex items-center justify-center bg-[#1a0e08]">
+        {/* === STARBURST RAYS — radiating from center === */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="starburst-container animate-spin-slow">
+            {Array.from({ length: 24 }).map((_, i) => (
+              <div
+                key={i}
+                className="starburst-ray"
+                style={{
+                  transform: `rotate(${i * 15}deg)`,
+                  opacity: i % 2 === 0 ? 0.06 : 0.03,
+                }}
+              />
+            ))}
+          </div>
+        </div>
 
+        {/* === CONCENTRIC VINYL RINGS — the geometric heart === */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          {/* Outermost ring — slow counter-rotation */}
+          <div className="vinyl-ring vinyl-ring-outer animate-spin-reverse">
+            <div className="vinyl-ring-dashes ring-dashes-32" />
+          </div>
+
+          {/* Second ring — dotted pattern */}
+          <div className="vinyl-ring vinyl-ring-mid animate-spin-slow-2">
+            <div className="vinyl-ring-dots" />
+          </div>
+
+          {/* Third ring — solid grooves */}
+          <div className="vinyl-ring vinyl-ring-inner animate-spin-reverse-slow">
+            <div className="vinyl-ring-grooves" />
+          </div>
+
+          {/* Center disc — the label */}
+          <div className="vinyl-center-disc">
+            <div className="vinyl-center-hole" />
+          </div>
+        </div>
+
+        {/* === FLOATING GEOMETRIC ACCENTS === */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Diamond shapes scattered */}
+          <div className="geo-diamond geo-diamond-1 animate-drift-1" />
+          <div className="geo-diamond geo-diamond-2 animate-drift-2" />
+          <div className="geo-diamond geo-diamond-3 animate-drift-3" />
+
+          {/* Small circles */}
+          <div className="geo-circle geo-circle-1 animate-drift-4" />
+          <div className="geo-circle geo-circle-2 animate-drift-5" />
+        </div>
+
+        {/* === AMBIENT GLOW LAYERS === */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(232,121,26,0.18)_0%,rgba(212,104,15,0.08)_30%,rgba(232,121,26,0.03)_55%,transparent_70%)] animate-glow-breathe pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(244,162,54,0.12)_0%,transparent_60%)] animate-glow-breathe-delayed pointer-events-none" />
+
+        {/* Edge vignette */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#1a0e08_85%)] pointer-events-none" />
+
+        <Hero />
+      </section>
+
+      
       {/* ================================================================
           ABOUT — What is Disco Soulstice?
           ================================================================ */}
