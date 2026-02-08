@@ -47,8 +47,10 @@ export function Header() {
         <div className="hidden md:flex items-center gap-10">
           <NavLink href="/">Home</NavLink>
           <NavLink href="/events">Events</NavLink>
+          {/*
           <NavLink href="/">Gallery</NavLink>
           <NavLink href="/">Contact</NavLink>
+          */}
         </div>
 
         {/* Mobile menu button */}
