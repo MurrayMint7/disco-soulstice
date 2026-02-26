@@ -47,10 +47,9 @@ export function Header() {
         <div className="hidden md:flex items-center gap-10">
           <NavLink href="/">Home</NavLink>
           <NavLink href="/events">Events</NavLink>
-          {/*
-          <NavLink href="/">Gallery</NavLink>
-          <NavLink href="/">Contact</NavLink>
-          */}
+          <NavLink href="/gallery">Gallery</NavLink>
+          <NavLink href="/contact">Contact</NavLink>
+        
         </div>
 
         {/* Mobile menu button */}
@@ -104,10 +103,10 @@ export function Header() {
           <MobileNavLink href="/events" onClick={() => setMobileMenuOpen(false)}>
             Events
           </MobileNavLink>
-          <MobileNavLink href="/" onClick={() => setMobileMenuOpen(false)}>
+          <MobileNavLink href="/gallery" onClick={() => setMobileMenuOpen(false)}>
             Gallery
           </MobileNavLink>
-          <MobileNavLink href="/" onClick={() => setMobileMenuOpen(false)}>
+          <MobileNavLink href="/contact" onClick={() => setMobileMenuOpen(false)}>
             Contact
           </MobileNavLink>
 

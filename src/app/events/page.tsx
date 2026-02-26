@@ -15,9 +15,10 @@ const events = [
     description:
       "The Groove Assembly sees WX welcome the coming together of some local DJ talent for a bank holiday event to make the dancefloor shake! A crew of crate-diggers from Elliott's Bar's Vinyl Social night join forces with the party collective with a passion for good time grooves — Disco Soulstice — for a Good Friday event not to be missed. Expect to hear disco, funk, house and global groove from 4 till 10!",
     image:
-      "https://dnm1fy55wi.ufs.sh/f/nVG6HkSaVLokJ76SIUfPhnczD5kSldACG4Ttuv7WRXVOE89f",
+      "https://dnm1fy55wi.ufs.sh/f/nVG6HkSaVLokTAI2x7QJuA96T2DW1tbyHYd0lfKx8znBs7cI",
     status: "on-sale" as const,
   },
+  /*
   {
     id: 2,
     title: "Disco Soulstice's 1st Birthday",
@@ -31,6 +32,7 @@ const events = [
       "https://dnm1fy55wi.ufs.sh/f/nVG6HkSaVLokJ76SIUfPhnczD5kSldACG4Ttuv7WRXVOE89f",
     status: "coming-soon" as const,
   },
+  */
 ];
 
 export default function EventsPage() {
