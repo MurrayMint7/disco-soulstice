@@ -13,10 +13,10 @@ const events = [
     venue: "Wakefield Exchange",
     location: "Union Street, WF1 3AD",
     description:
-      "The Groove Assembly sees WX welcome the coming together of some local DJ talent for a bank holiday event to make the dancefloor shake! A crew of crate-diggers from Elliott's Bar's Vinyl Social night join forces with the party collective with a passion for good time grooves — Disco Soulstice — for a Good Friday event not to be missed. Expect to hear disco, funk, house and global groove from 4 till 10!",
+      "A crew of crate-diggers from Elliott's Bar's Vinyl Social night join Disco Soulstice, the party collective with a passion for good time, groove for a Good Friday event not to be missed. Expect to hear disco, funk, house and global groove from 4pm-10pm!",
     image:
       "https://dnm1fy55wi.ufs.sh/f/nVG6HkSaVLokTAI2x7QJuA96T2DW1tbyHYd0lfKx8znBs7cI",
-    status: "on-sale" as const,
+    status: "free-event" as const,
   },
   /*
   {
@@ -103,7 +103,7 @@ interface Event {
   location: string;
   description: string;
   image: string;
-  status: "on-sale" | "coming-soon" | "sold-out";
+  status: "on-sale" | "coming-soon" | "sold-out" | "free-event";
 }
 
 function EventCard({ event, index, isLast }: { event: Event; index: number; isLast: boolean }) {
@@ -231,6 +231,10 @@ function EventCard({ event, index, isLast }: { event: Event; index: number; isLa
             <div className="btn-outline pointer-events-none">
               Details Coming Soon
             </div>
+          ) : event.status === "free-event" ? (
+            <div className="font-body text-accent text-sm tracking-wider uppercase">
+              Free Entry
+            </div>
           ) : (
             <div className="font-body text-cream-200/30 text-sm tracking-wider uppercase">
               Sold Out
@@ -245,7 +249,7 @@ function EventCard({ event, index, isLast }: { event: Event; index: number; isLa
   );
 }
 
-function StatusBadge({ status }: { status: "on-sale" | "coming-soon" | "sold-out" }) {
+function StatusBadge({ status }: { status: "on-sale" | "coming-soon" | "sold-out" | "free-event" }) {
   if (status === "on-sale") {
     return (
       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-background/80 backdrop-blur-sm border border-primary/30 rounded-full">
@@ -262,6 +266,16 @@ function StatusBadge({ status }: { status: "on-sale" | "coming-soon" | "sold-out
         <span className="w-1.5 h-1.5 rounded-full bg-amber-300/50" />
         <span className="font-body text-amber-300/60 text-xs font-medium tracking-wider uppercase">
           Coming Soon
+        </span>
+      </span>
+    );
+  }
+  if (status === "free-event") {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-background/80 backdrop-blur-sm border border-accent/40 rounded-full">
+        <span className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_6px_rgba(244,162,54,0.8)]" />
+        <span className="font-body text-accent text-xs font-medium tracking-wider uppercase">
+          Free Entry
         </span>
       </span>
     );

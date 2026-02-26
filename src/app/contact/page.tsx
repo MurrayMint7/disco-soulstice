@@ -37,7 +37,7 @@ export default function ContactPage() {
           </h1>
 
           <p className="font-body text-cream-200/50 text-base sm:text-lg max-w-lg leading-relaxed">
-            We&apos;re always happy to hear from you — whether it&apos;s about
+            We&apos;re always happy to hear from you - whether it&apos;s about
             upcoming events, collaborations, or just to talk about good music.
           </p>
         </div>
@@ -156,7 +156,7 @@ export default function ContactPage() {
                   </svg>
                 }
                 title="Collaborations"
-                body="DJs, photographers, creatives — if you share the love for good music, let's talk."
+                body="DJs, photographers, creatives - if you share the love for good music, let's talk."
               />
               <InfoBlock
                 icon={

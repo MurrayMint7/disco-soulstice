@@ -5,7 +5,7 @@ import { Footer } from "./_components/footer";
 import  Hero  from "./_components/hero";
 
 const heroImage =
-  "https://dnm1fy55wi.ufs.sh/f/nVG6HkSaVLokJ76SIUfPhnczD5kSldACG4Ttuv7WRXVOE89f";
+  "https://dnm1fy55wi.ufs.sh/f/nVG6HkSaVLokTAI2x7QJuA96T2DW1tbyHYd0lfKx8znBs7cI";
 
 export default async function Home() {
   return (
@@ -102,11 +102,10 @@ export default async function Home() {
           <p className="font-body text-cream-200/70 text-base sm:text-lg md:text-xl leading-relaxed mb-5 sm:mb-6">
             Disco Soulstice is a crew of groove enthusiasts
             bringing together the finest in disco, funk, house and global groove.
-            Born from late-night vinyl sessions and a shared love for the
-            dancefloor.
+            
           </p>
           <p className="font-body text-cream-200/50 text-base md:text-lg leading-relaxed">
-            We curate events that feel like coming home — warm lighting, warm
+            We curate events that feel like coming home - warm lighting, warm
             people, and a soundtrack that moves your body and soul. Every set is
             a journey, every night is a celebration.
           </p>
@@ -142,6 +141,13 @@ export default async function Home() {
               <div className="absolute inset-0 mix-blend-multiply bg-gradient-to-br from-primary/10 to-transparent" />
               {/* Inner glow border */}
               <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_60px_rgba(232,121,26,0.1)] group-hover:shadow-[inset_0_0_80px_rgba(232,121,26,0.15)] transition-all duration-500" />
+              {/* Free entry badge */}
+              <div className="absolute top-4 left-4">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-background/80 backdrop-blur-sm border border-accent/40 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_6px_rgba(244,162,54,0.8)]" />
+                  <span className="font-body text-accent text-xs font-medium tracking-wider uppercase">Free Entry</span>
+                </span>
+              </div>
             </div>
 
             {/* Details */}
@@ -199,9 +205,7 @@ export default async function Home() {
               </div>
 
               <p className="font-body text-cream-200/50 leading-relaxed mb-8 sm:mb-10">
-                Local DJ talent joins forces with Disco Soulstice for a Good
-                Friday event not to be missed. Expect disco, funk, house &
-                global groove.
+                A crew of crate-diggers from Elliott&apos;s Bar&apos;s Vinyl Social night join Disco Soulstice for a Good Friday event not to be missed. Expect disco, funk, house and global groove from 4pm–10pm!
               </p>
 
               <Link href="/events" className="btn-primary self-start">
