@@ -1,4 +1,5 @@
 import "~/styles/globals.css";
+import { Analytics } from "@vercel/analytics/next"
 
 import { type Metadata } from "next";
 import { Abril_Fatface, Inter } from "next/font/google";
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="en" className={`${abrilFatface.variable} ${inter.variable}`}>
       <body className="noise-overlay">
         <TRPCReactProvider>{children}</TRPCReactProvider>
+        <Analytics />
       </body>
     </html>
   );
