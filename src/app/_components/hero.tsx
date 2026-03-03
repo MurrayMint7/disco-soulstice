@@ -39,8 +39,8 @@ export default function Hero(){
             
                 {/* Tagline */}
                 <p className="font-body text-cream-200/55 text-sm sm:text-base md:text-lg max-w-md mx-auto mt-6 sm:mt-8 mb-8 sm:mb-10 animate-fade-up delay-200 leading-relaxed tracking-wide">
-                    A party collective with a passion
-                    <br className="hidden sm:block" />
+                    A party collective with a passion 
+                    <br/>
                     for good time grooves.
                 </p>
             
