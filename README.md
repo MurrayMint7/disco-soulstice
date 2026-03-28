@@ -1,26 +1,46 @@
 # Disco Soulstice
 
-## TODO
+Event ticketing and merch platform for Disco Soulstice.
 
-- [x] Make it Deploy on vercel
-- [x] Scaffold UI with mock data
-- [ ] Set up DB? Needed? 
-- [ ] Clerk auth? Needed?
-- [ ] Error Management w/ Sentry*
-- [ ] Parralel routes*
-- [ ] Server Actions*
-- [ ] Analytics with PostHog*
-- [ ] RateLimiting*
+## Stack
 
-#####
+- **Framework** — Next.js 15 (App Router)
+- **Auth** — Clerk
+- **Database** — PostgreSQL via Drizzle ORM
+- **API** — tRPC
+- **Payments** — Stripe
+- **Email** — Resend
+- **Analytics** — Vercel Analytics
+- **Deployment** — Vercel
 
-They are going to be using this page to see the events that will be planned for disco soulstice. They are going to want to see a page that gives off the Funky vibe at first glance. Its an event - its going to need to give off a cool & interesting vibe.
+## Features
 
-# Clerk?
-Not sure if we will need clerk here. We probably wont take a sign in as theres no payments for this website. We just need to link them to fatsoma tickets on the event's page.
+- Event listings with ticket purchasing via Stripe
+- QR code ticket confirmation emails via Resend
+- Merch store with order management
+- Admin dashboard (events, orders, merch, merch orders)
+- Clerk-protected sign in / sign up
 
-# Database?
-I feel the same with clerk as I do with a DB. I dont think we are going to be storing anything. Maybe we could do reviews? Some kind of user engagement to understand how the event was gauged how we could improve the event? - might be abit lame though.
+## Getting Started
 
-# *
-These are for my own learning.
+```bash
+npm install
+npm run dev
+```
+
+### Environment Variables
+
+Copy `.env.example` to `.env` and fill in:
+
+- `DATABASE_URL` — PostgreSQL connection string
+- `CLERK_SECRET_KEY` / `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `STRIPE_SECRET_KEY` / `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` / `STRIPE_WEBHOOK_SECRET`
+- `RESEND_API_KEY`
+
+### Database
+
+```bash
+npm run db:push    # push schema to DB
+npm run db:seed    # seed initial data
+npm run db:studio  # open Drizzle Studio
+```
