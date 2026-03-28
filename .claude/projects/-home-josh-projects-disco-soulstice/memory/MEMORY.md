@@ -1,0 +1,1 @@
+- [Vercel hosting](project_hosting.md) — webapp is deployed on Vercel

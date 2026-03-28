@@ -53,8 +53,9 @@ export function Header() {
           <NavLink href="/contact">Contact</NavLink>
           {!isSignedIn ? (
             <SignInButton mode="modal">
-              <button className="relative font-body text-sm font-medium tracking-[0.15em] uppercase text-amber-300/80 hover:text-amber-400 transition-colors duration-300">
-                Sign In
+              <button className="relative font-body text-sm font-medium tracking-[0.15em] uppercase text-amber-300/80 hover:text-amber-400 transition-colors duration-300 group cursor-pointer">
+                <span>Sign In</span>
+                <span className="absolute -bottom-1 left-0 w-0 h-px bg-gradient-to-r from-primary to-accent group-hover:w-full transition-all duration-400 ease-out" />
               </button>
             </SignInButton>
           ) : (
@@ -125,10 +126,11 @@ export function Header() {
           {!isSignedIn ? (
             <SignInButton mode="modal">
               <button
-                className="font-display text-3xl font-bold tracking-[0.1em] uppercase text-amber-300/80 hover:text-amber-300 transition-colors duration-300 py-2"
+                className="relative font-display text-3xl font-bold tracking-[0.1em] uppercase text-amber-300/80 hover:text-amber-300 transition-colors duration-300 py-2 group cursor-pointer"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Sign In
+                <span>Sign In</span>
+                <span className="absolute -bottom-1 left-0 w-0 h-px bg-gradient-to-r from-primary to-accent group-hover:w-full transition-all duration-400 ease-out" />
               </button>
             </SignInButton>
           ) : (
