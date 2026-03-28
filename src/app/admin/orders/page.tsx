@@ -119,7 +119,7 @@ export default function AdminOrdersPage() {
         </div>
       )}
 
-      {orders && orders.length === 0 && (
+      {orders?.length === 0 && (
         <p className="font-body text-cream-200/50">No orders found.</p>
       )}
     </div>

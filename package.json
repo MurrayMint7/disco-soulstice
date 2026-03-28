@@ -18,7 +18,8 @@
     "lint:fix": "next lint --fix",
     "preview": "next build && next start",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "validate": "next lint && tsc --noEmit && next build"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.6",

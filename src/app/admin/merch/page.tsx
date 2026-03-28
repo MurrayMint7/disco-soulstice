@@ -103,7 +103,7 @@ export default function AdminMerchPage() {
         </div>
       )}
 
-      {items && items.length === 0 && (
+      {items?.length === 0 && (
         <p className="font-body text-cream-200/50">
           No merch items yet. Click &quot;Add Item&quot; to create one.
         </p>

@@ -127,7 +127,7 @@ export default function AdminMerchOrdersPage() {
         </div>
       )}
 
-      {orders && orders.length === 0 && (
+      {orders?.length === 0 && (
         <p className="font-body text-cream-200/50">No merch orders found.</p>
       )}
     </div>

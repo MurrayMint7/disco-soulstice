@@ -59,7 +59,7 @@ export default function MerchCheckoutPage() {
     );
   }
 
-  if (!item || item.status !== "available" || !selectedSize) {
+  if (item?.status !== "available" || !selectedSize) {
     return (
       <main className="min-h-screen bg-background">
         <Header />

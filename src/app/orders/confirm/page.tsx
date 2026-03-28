@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 import { Header } from "~/app/_components/header";
 import { Footer } from "~/app/_components/footer";
 
-export default function OrderConfirmPage() {
+function OrderConfirmContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const type = searchParams.get("type"); // "ticket" or "merch"
@@ -89,5 +89,13 @@ export default function OrderConfirmPage() {
       </div>
       <Footer />
     </main>
+  );
+}
+
+export default function OrderConfirmPage() {
+  return (
+    <Suspense>
+      <OrderConfirmContent />
+    </Suspense>
   );
 }

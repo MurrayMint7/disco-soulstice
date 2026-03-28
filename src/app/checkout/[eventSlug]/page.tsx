@@ -42,7 +42,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!event || event.status !== "on-sale" || !event.priceInPence) {
+  if (event?.status !== "on-sale" || !event?.priceInPence) {
     return (
       <main className="min-h-screen bg-background">
         <Header />
