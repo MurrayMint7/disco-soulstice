@@ -1,5 +1,6 @@
 import "~/styles/globals.css";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/next";
+import { ClerkProvider } from "@clerk/nextjs";
 
 import { type Metadata } from "next";
 import { Abril_Fatface, Inter } from "next/font/google";
@@ -30,7 +31,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${abrilFatface.variable} ${inter.variable}`}>
       <body className="noise-overlay">
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <ClerkProvider>
+          <TRPCReactProvider>{children}</TRPCReactProvider>
+        </ClerkProvider>
         <Analytics />
       </body>
     </html>
