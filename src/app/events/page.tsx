@@ -1,41 +1,12 @@
 import { Footer } from "../_components/footer";
 import { Header } from "../_components/header";
 import Image from "next/image";
+import Link from "next/link";
+import { api } from "~/trpc/server";
 
-// Mock event data - replace with real data from your database later
-const events = [
-  {
-    id: 1,
-    title: "The Groove Assembly",
-    date: "April 3, 2026",
-    day: "Good Friday",
-    time: "4:00 PM — 10:00 PM",
-    venue: "Wakefield Exchange",
-    location: "Union Street, WF1 3AD",
-    description:
-      "A crew of crate-diggers from Elliott's Bar's Vinyl Social night join Disco Soulstice, the party collective with a passion for good time, groove for a Good Friday event not to be missed. Expect to hear disco, funk, house and global groove from 4pm-10pm!",
-    image:
-      "https://dnm1fy55wi.ufs.sh/f/nVG6HkSaVLokTAI2x7QJuA96T2DW1tbyHYd0lfKx8znBs7cI",
-    status: "free-event" as const,
-  },
-  /*
-  {
-    id: 2,
-    title: "Disco Soulstice's 1st Birthday",
-    date: "June 27, 2026",
-    day: "Saturday",
-    time: "TBC",
-    venue: "Melodie 71",
-    location: "Kirkstall, LS5 3AT",
-    description: "",
-    image:
-      "https://dnm1fy55wi.ufs.sh/f/nVG6HkSaVLokJ76SIUfPhnczD5kSldACG4Ttuv7WRXVOE89f",
-    status: "coming-soon" as const,
-  },
-  */
-];
+export default async function EventsPage() {
+  const events = await api.event.list();
 
-export default function EventsPage() {
   return (
     <main className="min-h-screen bg-background">
       <Header />
@@ -76,7 +47,12 @@ export default function EventsPage() {
       <section className="relative px-4 sm:px-6 pb-16 sm:pb-24 md:pb-32">
         <div className="max-w-5xl mx-auto space-y-16 sm:space-y-20 md:space-y-28">
           {events.map((event, index) => (
-            <EventCard key={event.id} event={event} index={index} isLast={index === events.length - 1} />
+            <EventCard
+              key={event.id}
+              event={event}
+              index={index}
+              isLast={index === events.length - 1}
+            />
           ))}
         </div>
       </section>
@@ -96,18 +72,35 @@ export default function EventsPage() {
 interface Event {
   id: number;
   title: string;
-  date: string;
-  day: string;
+  slug: string;
+  date: Date;
+  day: string | null;
   time: string;
   venue: string;
   location: string;
-  description: string;
+  description: string | null;
   image: string;
   status: "on-sale" | "coming-soon" | "sold-out" | "free-event";
+  priceInPence: number | null;
+  totalTickets: number | null;
+  ticketsSold: number;
 }
 
-function EventCard({ event, index, isLast }: { event: Event; index: number; isLast: boolean }) {
+function EventCard({
+  event,
+  index,
+  isLast,
+}: {
+  event: Event;
+  index: number;
+  isLast: boolean;
+}) {
   const isReversed = index % 2 !== 0;
+  const displayDate = new Date(event.date).toLocaleDateString("en-GB", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
   return (
     <article className="group">
@@ -142,7 +135,7 @@ function EventCard({ event, index, isLast }: { event: Event; index: number; isLa
           {/* Date */}
           <div className="flex items-center gap-3 mb-4">
             <span className="font-body text-primary text-sm font-semibold tracking-[0.15em] uppercase">
-              {event.date}
+              {displayDate}
             </span>
             {event.day && (
               <>
@@ -211,7 +204,7 @@ function EventCard({ event, index, isLast }: { event: Event; index: number; isLa
 
           {/* CTA */}
           {event.status === "on-sale" ? (
-            <button className="btn-primary">
+            <Link href={`/events/${event.slug}`} className="btn-primary">
               Get Tickets
               <svg
                 className="w-4 h-4"
@@ -226,7 +219,7 @@ function EventCard({ event, index, isLast }: { event: Event; index: number; isLa
                   d="M17 8l4 4m0 0l-4 4m4-4H3"
                 />
               </svg>
-            </button>
+            </Link>
           ) : event.status === "coming-soon" ? (
             <div className="btn-outline pointer-events-none">
               Details Coming Soon
@@ -249,7 +242,11 @@ function EventCard({ event, index, isLast }: { event: Event; index: number; isLa
   );
 }
 
-function StatusBadge({ status }: { status: "on-sale" | "coming-soon" | "sold-out" | "free-event" }) {
+function StatusBadge({
+  status,
+}: {
+  status: "on-sale" | "coming-soon" | "sold-out" | "free-event";
+}) {
   if (status === "on-sale") {
     return (
       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-background/80 backdrop-blur-sm border border-primary/30 rounded-full">
