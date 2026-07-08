@@ -4,8 +4,8 @@
 
 - [x] Make it Deploy on vercel
 - [x] Scaffold UI with mock data
-- [ ] Set up DB? Needed? 
-- [ ] Clerk auth? Needed?
+- [x] Set up DB? Needed? 
+- [x] Clerk auth? Needed?
 - [ ] Error Management w/ Sentry*
 - [ ] Parralel routes*
 - [ ] Server Actions*

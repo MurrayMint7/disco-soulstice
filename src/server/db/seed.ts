@@ -40,4 +40,6 @@ async function main() {
   console.log("Seeded events successfully");
 }
 
-main().catch(console.error);
+main()
+  .catch(console.error)
+  .finally(() => process.exit());
