@@ -57,6 +57,7 @@ export const events = createTable(
     location: d.varchar({ length: 256 }).notNull(),
     description: d.text().default(""),
     image: d.varchar({ length: 1024 }).notNull(),
+    imagePathname: d.varchar({ length: 1024 }),
     status: eventStatusEnum().notNull().default("coming-soon"),
     priceInPence: d.integer(),
     totalTickets: d.integer(),
@@ -159,6 +160,7 @@ export const merchItems = createTable(
     slug: d.varchar({ length: 256 }).notNull().unique(),
     description: d.text().default(""),
     image: d.varchar({ length: 1024 }).notNull(),
+    imagePathname: d.varchar({ length: 1024 }),
     priceInPence: d.integer().notNull(),
     status: merchStatusEnum().notNull().default("coming-soon"),
     maxPerOrder: d.integer().notNull().default(4),
@@ -252,6 +254,62 @@ export const merchOrdersRelations = relations(merchOrders, ({ one }) => ({
   sizeRef: one(merchSizes, {
     fields: [merchOrders.merchSizeId],
     references: [merchSizes.id],
+  }),
+}));
+
+// ── Gallery ────────────────────────────────────────────────────────────
+
+export const galleryAspectEnum = pgEnum("disco-soulstice_gallery_aspect", [
+  "square",
+  "portrait",
+  "landscape",
+  "wide",
+]);
+
+export const galleryAlbums = createTable(
+  "gallery_album",
+  (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    slug: d.varchar({ length: 256 }).notNull().unique(),
+    label: d.varchar({ length: 256 }).notNull(),
+    date: d.varchar({ length: 64 }),
+    sortOrder: d.integer().notNull().default(0),
+    createdAt: d
+      .timestamp({ withTimezone: true })
+      .$defaultFn(() => new Date())
+      .notNull(),
+  }),
+  (t) => [index("gallery_album_sort_idx").on(t.sortOrder)],
+);
+
+export const galleryImages = createTable(
+  "gallery_image",
+  (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    albumId: d
+      .integer()
+      .notNull()
+      .references(() => galleryAlbums.id, { onDelete: "cascade" }),
+    url: d.varchar({ length: 1024 }).notNull(),
+    pathname: d.varchar({ length: 1024 }).notNull(),
+    aspect: galleryAspectEnum().notNull().default("landscape"),
+    sortOrder: d.integer().notNull().default(0),
+    createdAt: d
+      .timestamp({ withTimezone: true })
+      .$defaultFn(() => new Date())
+      .notNull(),
+  }),
+  (t) => [index("gallery_image_album_idx").on(t.albumId)],
+);
+
+export const galleryAlbumsRelations = relations(galleryAlbums, ({ many }) => ({
+  images: many(galleryImages),
+}));
+
+export const galleryImagesRelations = relations(galleryImages, ({ one }) => ({
+  album: one(galleryAlbums, {
+    fields: [galleryImages.albumId],
+    references: [galleryAlbums.id],
   }),
 }));
 

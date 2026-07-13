@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
+import { ImageUpload } from "~/app/admin/_components/image-upload";
 
 export default function EditMerchPage() {
   const params = useParams<{ id: string }>();
@@ -33,6 +34,7 @@ export default function EditMerchPage() {
     slug: "",
     description: "",
     image: "",
+    imagePathname: "",
     priceInPence: "",
     status: "coming-soon" as
       | "available"
@@ -51,6 +53,7 @@ export default function EditMerchPage() {
         slug: item.slug,
         description: item.description ?? "",
         image: item.image,
+        imagePathname: item.imagePathname ?? "",
         priceInPence: item.priceInPence.toString(),
         status: item.status,
         maxPerOrder: item.maxPerOrder.toString(),
@@ -70,6 +73,7 @@ export default function EditMerchPage() {
       slug: form.slug,
       description: form.description || undefined,
       image: form.image,
+      imagePathname: form.imagePathname || undefined,
       priceInPence: parseInt(form.priceInPence),
       status: form.status,
       maxPerOrder: parseInt(form.maxPerOrder) || 4,
@@ -110,10 +114,13 @@ export default function EditMerchPage() {
             className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-foreground font-body text-sm focus:outline-none focus:border-primary"
           />
         </div>
-        <Field
-          label="Image URL"
+        <ImageUpload
+          label="Image"
           value={form.image}
-          onChange={(v) => updateField("image", v)}
+          onChange={({ url, pathname }) =>
+            setForm((prev) => ({ ...prev, image: url, imagePathname: pathname }))
+          }
+          folder="merch"
           required
         />
         <Field
