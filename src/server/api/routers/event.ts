@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, desc, gte, lt } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 import {
@@ -12,6 +12,22 @@ import { events, orders } from "~/server/db/schema";
 export const eventRouter = createTRPCRouter({
   list: publicProcedure.query(async ({ ctx }) => {
     return ctx.db.select().from(events).orderBy(asc(events.date));
+  }),
+
+  listUpcoming: publicProcedure.query(async ({ ctx }) => {
+    return ctx.db
+      .select()
+      .from(events)
+      .where(gte(events.date, new Date()))
+      .orderBy(asc(events.date));
+  }),
+
+  listPast: publicProcedure.query(async ({ ctx }) => {
+    return ctx.db
+      .select()
+      .from(events)
+      .where(lt(events.date, new Date()))
+      .orderBy(desc(events.date));
   }),
 
   getBySlug: publicProcedure
