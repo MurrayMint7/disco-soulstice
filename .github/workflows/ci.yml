@@ -25,9 +25,13 @@ jobs:
 
       - name: Lint
         run: npm run lint
+        env:
+          SKIP_ENV_VALIDATION: "1"
 
       - name: Typecheck
         run: npm run typecheck
 
       - name: Build
         run: npm run build
+        env:
+          SKIP_ENV_VALIDATION: "1"
