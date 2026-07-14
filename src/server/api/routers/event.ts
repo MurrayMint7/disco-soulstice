@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { eq, asc, desc, gte, lt } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { del } from "@vercel/blob";
 
 import {
   createTRPCRouter,
@@ -66,6 +67,7 @@ export const eventRouter = createTRPCRouter({
         location: z.string(),
         description: z.string().optional(),
         image: z.string().url(),
+        imagePathname: z.string().optional(),
         status: z.enum(["on-sale", "coming-soon", "sold-out", "free-event"]),
         priceInPence: z.number().int().positive().optional(),
         totalTickets: z.number().int().positive().optional(),
@@ -90,6 +92,7 @@ export const eventRouter = createTRPCRouter({
         location: z.string().optional(),
         description: z.string().optional(),
         image: z.string().url().optional(),
+        imagePathname: z.string().optional(),
         status: z
           .enum(["on-sale", "coming-soon", "sold-out", "free-event"])
           .optional(),
@@ -100,6 +103,22 @@ export const eventRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
+
+      if (data.image) {
+        const [existing] = await ctx.db
+          .select({ imagePathname: events.imagePathname })
+          .from(events)
+          .where(eq(events.id, id))
+          .limit(1);
+
+        if (
+          existing?.imagePathname &&
+          existing.imagePathname !== data.imagePathname
+        ) {
+          await del(existing.imagePathname);
+        }
+      }
+
       const [event] = await ctx.db
         .update(events)
         .set(data)
@@ -125,6 +144,16 @@ export const eventRouter = createTRPCRouter({
         });
       }
 
+      const [event] = await ctx.db
+        .select({ imagePathname: events.imagePathname })
+        .from(events)
+        .where(eq(events.id, input.id))
+        .limit(1);
+
       await ctx.db.delete(events).where(eq(events.id, input.id));
+
+      if (event?.imagePathname) {
+        await del(event.imagePathname);
+      }
     }),
 });

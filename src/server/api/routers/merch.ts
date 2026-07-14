@@ -2,6 +2,7 @@ import { z } from "zod";
 import { eq, and, desc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { clerkClient } from "@clerk/nextjs/server";
+import { del } from "@vercel/blob";
 
 import {
   createTRPCRouter,
@@ -181,6 +182,7 @@ export const merchRouter = createTRPCRouter({
         slug: z.string().min(1),
         description: z.string().optional(),
         image: z.string().min(1),
+        imagePathname: z.string().optional(),
         priceInPence: z.number().int().min(0),
         status: z.enum(["available", "coming-soon", "sold-out", "discontinued"]),
         maxPerOrder: z.number().int().min(1).optional(),
@@ -225,6 +227,7 @@ export const merchRouter = createTRPCRouter({
         slug: z.string().min(1).optional(),
         description: z.string().optional(),
         image: z.string().min(1).optional(),
+        imagePathname: z.string().optional(),
         priceInPence: z.number().int().min(0).optional(),
         status: z
           .enum(["available", "coming-soon", "sold-out", "discontinued"])
@@ -234,6 +237,22 @@ export const merchRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
+
+      if (data.image) {
+        const [existing] = await ctx.db
+          .select({ imagePathname: merchItems.imagePathname })
+          .from(merchItems)
+          .where(eq(merchItems.id, id))
+          .limit(1);
+
+        if (
+          existing?.imagePathname &&
+          existing.imagePathname !== data.imagePathname
+        ) {
+          await del(existing.imagePathname);
+        }
+      }
+
       const [updated] = await ctx.db
         .update(merchItems)
         .set(data)
@@ -325,12 +344,22 @@ export const merchRouter = createTRPCRouter({
         });
       }
 
+      const [item] = await ctx.db
+        .select({ imagePathname: merchItems.imagePathname })
+        .from(merchItems)
+        .where(eq(merchItems.id, input.id))
+        .limit(1);
+
       await ctx.db.transaction(async (tx) => {
         await tx
           .delete(merchSizes)
           .where(eq(merchSizes.merchItemId, input.id));
         await tx.delete(merchItems).where(eq(merchItems.id, input.id));
       });
+
+      if (item?.imagePathname) {
+        await del(item.imagePathname);
+      }
     }),
 
   adminGetOrders: adminProcedure

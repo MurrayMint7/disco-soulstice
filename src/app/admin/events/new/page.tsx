@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
+import { ImageUpload } from "~/app/admin/_components/image-upload";
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function NewEventPage() {
     location: "",
     description: "",
     image: "",
+    imagePathname: "",
     status: "coming-soon" as const,
     priceInPence: "",
     totalTickets: "",
@@ -51,6 +53,7 @@ export default function NewEventPage() {
       location: form.location,
       description: form.description || undefined,
       image: form.image,
+      imagePathname: form.imagePathname || undefined,
       status: form.status,
       priceInPence: form.priceInPence ? parseInt(form.priceInPence) : undefined,
       totalTickets: form.totalTickets
@@ -119,10 +122,13 @@ export default function NewEventPage() {
             className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-foreground font-body text-sm focus:outline-none focus:border-primary"
           />
         </div>
-        <Field
-          label="Image URL"
+        <ImageUpload
+          label="Image"
           value={form.image}
-          onChange={(v) => updateField("image", v)}
+          onChange={({ url, pathname }) =>
+            setForm((prev) => ({ ...prev, image: url, imagePathname: pathname }))
+          }
+          folder="events"
           required
         />
         <div>

@@ -12,6 +12,10 @@ const config = {
         protocol: 'https',
         hostname: 'dnm1fy55wi.ufs.sh',
       },
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+      },
     ],
   },
 };

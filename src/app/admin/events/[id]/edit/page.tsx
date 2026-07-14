@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
+import { ImageUpload } from "~/app/admin/_components/image-upload";
 
 export default function EditEventPage() {
   const params = useParams<{ id: string }>();
@@ -27,6 +28,7 @@ export default function EditEventPage() {
     location: "",
     description: "",
     image: "",
+    imagePathname: "",
     status: "coming-soon" as "on-sale" | "coming-soon" | "sold-out" | "free-event",
     priceInPence: "",
     totalTickets: "",
@@ -45,6 +47,7 @@ export default function EditEventPage() {
         location: event.location,
         description: event.description ?? "",
         image: event.image,
+        imagePathname: event.imagePathname ?? "",
         status: event.status,
         priceInPence: event.priceInPence?.toString() ?? "",
         totalTickets: event.totalTickets?.toString() ?? "",
@@ -70,6 +73,7 @@ export default function EditEventPage() {
       location: form.location,
       description: form.description || undefined,
       image: form.image,
+      imagePathname: form.imagePathname || undefined,
       status: form.status,
       priceInPence: form.priceInPence ? parseInt(form.priceInPence) : null,
       totalTickets: form.totalTickets ? parseInt(form.totalTickets) : null,
@@ -140,10 +144,13 @@ export default function EditEventPage() {
             className="w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-foreground font-body text-sm focus:outline-none focus:border-primary"
           />
         </div>
-        <Field
-          label="Image URL"
+        <ImageUpload
+          label="Image"
           value={form.image}
-          onChange={(v) => updateField("image", v)}
+          onChange={({ url, pathname }) =>
+            setForm((prev) => ({ ...prev, image: url, imagePathname: pathname }))
+          }
+          folder="events"
           required
         />
         <div>

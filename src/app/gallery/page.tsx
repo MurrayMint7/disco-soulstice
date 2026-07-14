@@ -1,32 +1,27 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { Header } from "../_components/header";
 import { Footer } from "../_components/footer";
-import {
-  galleryEvents,
-  galleryPhotos,
-  type GalleryPhoto,
-  type GalleryEvent,
-} from "./gallery-data";
+import { api } from "~/trpc/react";
 
-/* ====================================================================
-   DERIVED DATA — built automatically from gallery-data.ts
-   ==================================================================== */
+type Aspect = "square" | "portrait" | "landscape" | "wide";
 
-// Lookup map: eventId → event object
-const eventMap = new Map<string, GalleryEvent>(
-  galleryEvents.map((e) => [e.id, e]),
-);
+interface GalleryEvent {
+  id: string;
+  label: string;
+  date: string;
+}
 
-// Filter chips: "All Nights" + one chip per event
-const eventFilters = [
-  { id: "all", label: "All Nights" },
-  ...galleryEvents.map((e) => ({ id: e.id, label: e.label })),
-];
+interface GalleryPhoto {
+  id: number;
+  src: string;
+  eventId: string;
+  aspect: Aspect;
+}
 
-const aspectClass: Record<GalleryPhoto["aspect"], string> = {
+const aspectClass: Record<Aspect, string> = {
   square: "aspect-square",
   portrait: "aspect-[3/4]",
   landscape: "aspect-[4/3]",
@@ -38,6 +33,44 @@ const aspectClass: Record<GalleryPhoto["aspect"], string> = {
    ==================================================================== */
 
 export default function GalleryPage() {
+  const { data: albums, isLoading } = api.gallery.listAlbums.useQuery();
+
+  const galleryEvents: GalleryEvent[] = useMemo(
+    () =>
+      (albums ?? []).map((album) => ({
+        id: album.slug,
+        label: album.label,
+        date: album.date ?? "",
+      })),
+    [albums],
+  );
+
+  const galleryPhotos: GalleryPhoto[] = useMemo(
+    () =>
+      (albums ?? []).flatMap((album) =>
+        album.images.map((image) => ({
+          id: image.id,
+          src: image.url,
+          eventId: album.slug,
+          aspect: image.aspect,
+        })),
+      ),
+    [albums],
+  );
+
+  const eventMap = useMemo(
+    () => new Map<string, GalleryEvent>(galleryEvents.map((e) => [e.id, e])),
+    [galleryEvents],
+  );
+
+  const eventFilters = useMemo(
+    () => [
+      { id: "all", label: "All Nights" },
+      ...galleryEvents.map((e) => ({ id: e.id, label: e.label })),
+    ],
+    [galleryEvents],
+  );
+
   const [activeFilter, setActiveFilter] = useState("all");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
@@ -159,7 +192,11 @@ export default function GalleryPage() {
           ================================================================ */}
       <section className="px-4 sm:px-6 pb-16 sm:pb-24 md:pb-32">
         <div className="max-w-7xl mx-auto">
-          {filteredPhotos.length === 0 ? (
+          {isLoading ? (
+            <p className="font-body text-cream-200/40 text-center py-24">
+              Loading gallery...
+            </p>
+          ) : filteredPhotos.length === 0 ? (
             <EmptyState />
           ) : (
             <div className="columns-2 md:columns-3 lg:columns-4 gap-3 sm:gap-4">
