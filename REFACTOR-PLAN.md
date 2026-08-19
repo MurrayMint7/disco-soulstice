@@ -194,6 +194,9 @@ The two everything else depends on.
 3. Add `@source` directives to `apps/nextjs/src/styles/globals.css` for any package
    that will contain Tailwind classes — Tailwind does not scan workspace
    dependencies automatically.
+4. **Keep a `db:push` script in `apps/nextjs`**, delegating to the new package
+   (`pnpm --filter @disco/db db:push`). Vercel's build command calls it on every
+   deploy; moving it without leaving a delegation breaks production deploys.
 
 **Gate:** `pnpm verify` green. `pnpm db:studio` connects. Styles unchanged in dev.
 
@@ -322,10 +325,46 @@ Also ported into the shared tooling so behaviour is unchanged from `main`:
 
 - Root Directory → `apps/nextjs`
 - Install Command → `pnpm install --frozen-lockfile`
-- Build Command → `pnpm build`
+- Build Command → `pnpm db:push && pnpm build`
 - Then confirm a preview deploy is green **before starting Phase 2**.
 
 `.vercel/repo.json` and `.github/workflows/ci.yml` are already updated in the repo.
+
+### The build command runs `db:push` — this constrains the refactor
+
+The previous build command was `npm run db:push && npm run build`, so **every deploy
+applies the Drizzle schema directly to the live database**. Verified working from the new
+location: `drizzle-kit` resolves the `~/env` alias, loads `apps/nextjs/.env`, and reads
+all 9 tables. So `pnpm db:push && pnpm build` is a like-for-like replacement.
+
+`pnpm build` here is `next build`, not `turbo run build`. That is correct — with Root
+Directory set to `apps/nextjs`, Vercel installs at the workspace root, and the `@disco/*`
+packages are consumed as TypeScript source via `transpilePackages`, so there is nothing
+to pre-build. Turbo is not needed in the deploy path.
+
+**Three consequences:**
+
+1. **`apps/nextjs` must keep a `db:push` script at every phase**, so the dashboard build
+   command never has to change again. In Phase 2, when `drizzle.config.ts` and the schema
+   move to `@disco/db`, the app's script becomes a delegation:
+   `"db:push": "pnpm --filter @disco/db db:push"`. **Do not simply move the script.**
+
+2. **Dropping `posts` from `schema.ts` would drop the live table on the next deploy.**
+   `drizzle-kit push` diffs and applies DDL with no migration file and no review step.
+   `disco-soulstice_post` is a real table in the schema drizzle tracks. The [Dead code](#dead-code)
+   rule — delete the router and component, keep the table — is therefore **load-bearing,
+   not cautious**. The same applies to any column rename during the port.
+
+3. **Check whether preview deploys share `DATABASE_URL` with production.** If the variable
+   is set at project scope rather than per-environment, every preview deploy of this branch
+   runs `db:push` against production. Phases 0–6 keep the schema byte-identical, so a push
+   is a no-op — but verify before the first preview deploy rather than after.
+
+**Worth a follow-up PR after the refactor merges:** replace `db:push`-on-deploy with real
+migrations. There are no migrations today, and a trial `drizzle-kit generate` produced a
+clean baseline of all 9 tables in one file — so the switch is cheap, and it replaces
+unreviewed DDL-on-deploy with SQL that lands in git and gets read. Out of scope here;
+this refactor preserves existing behaviour.
 
 ---
 
@@ -350,9 +389,10 @@ Pure logic, Vitest, no DB / Stripe / Resend. Written in Phase 4, before the code
 
 - **`postRouter`** (`src/server/api/routers/post.ts`, 30 lines) — delete in Phase 5.
 - **`LatestPost`** (`src/app/_components/post.tsx`) — imported nowhere. Delete in Phase 5.
-- **The `posts` table** — **keep it in `schema.ts` for now.** There are no migrations;
-  the workflow is `db:push`, and removing the table from the schema would make the next
-  push *drop a live table*. Mark it deprecated in a comment and drop it in a separate,
+- **The `posts` table** — **keep it in `schema.ts` for now.** There are no migrations,
+  and **`db:push` runs as part of the Vercel build command on every deploy**, so removing
+  the table from the schema would make the next *deploy* drop a live table — no manual
+  step required, no confirmation prompt. Mark it deprecated in a comment and drop it in a separate,
   deliberate PR after the refactor merges.
 
 ---
@@ -363,7 +403,8 @@ Pure logic, Vitest, no DB / Stripe / Resend. Written in Phase 4, before the code
 |---|---|---|
 | **Vercel deploy config** | Root directory, install command and build command all change. `.vercel/repo.json` pins `"directory": "."`. | Verified by the Phase 1 gate, before any code restructuring compounds on it. |
 | **Stripe webhook path** | `/api/webhooks/stripe` is registered in the live Stripe dashboard. A changed path means production payments silently stop confirming. | Explicit Phase 1 check; Phase 4 gate replays a real event via the Stripe CLI. |
-| **Live database** | Real orders. The `disco-soulstice_` prefix and every column name must survive untouched. | Schema moves byte-identical in Phase 2. No `db:push` runs during the refactor. |
+| **Live database** | Real orders. The `disco-soulstice_` prefix and every column name must survive untouched. | Schema moves byte-identical in Phase 2. |
+| **`db:push` runs on every deploy** | The Vercel build command is `db:push && build`, so schema changes reach production as unreviewed DDL. Dropping `posts` from the schema would drop a live table. | Schema stays byte-identical through every phase; `posts` stays in `schema.ts`; `apps/nextjs` keeps a delegating `db:push` script so the build command never changes. |
 | **`@t3-oss/env-nextjs` in a package** | `NEXT_PUBLIC_*` vars are inlined at build time. Reading them from inside a workspace package only works if the package is in `transpilePackages`. | Every `@disco/*` package goes in `transpilePackages` (Phase 6), but check the client vars resolve as soon as `@disco/env` exists (Phase 2). |
 | **Tailwind cross-package content** | Tailwind 4 does not scan workspace dependencies — they resolve through `node_modules`, which it excludes. Classes in `@disco/ui` silently produce no CSS and the build still passes. | `@source` directives added in Phase 2, before any component moves into a package. |
 | **Tailwind 4.0 → 4.3 bump** | Three minor versions of a young major. Utility output can shift subtly; this app leans on a hand-rolled `@theme inline` token block in `globals.css`. | Bumped alone in Phase 0, with nothing else changing, so a visual diff is attributable. |
