@@ -7,7 +7,9 @@ with **identical functionality** — auth, billing, email, uploads, admin, all o
 - **Branch:** `refactor/turborepo-monorepo` (off `origin/main` @ `369c535`)
 - **Merge path:** single PR into `main` when the refactor is complete
 - **Starter baseline:** `turborepo-starter` `main` @ `ab12a85`
-- **Status:** Phases 0–5 complete (`pnpm verify` green). Phase 6 is next.
+- **Status:** Phases 0–6 complete (`pnpm verify` green). **Phase 7 — review, preview
+  deploy and merge — is yours to drive.** Three manual gates are outstanding; they are
+  listed under [Before merging](#before-merging).
   One manual gate is outstanding — see [Phase 4](#phase-4--services-tests-first-).
   See [Implementation log](#implementation-log).
 
@@ -599,6 +601,58 @@ name those types. Left as-is. **If a package ever sets `noEmit: false`, this com
 
 **Outstanding manual gate:** click through every admin screen and both checkout flows.
 Not automatable here; the build and the type-checked router surface are the automated half.
+
+
+### Phase 6 — Composition and cleanup ✅
+
+`@disco/api` owns `appRouter`, `createCaller` and the `AppRouter` type;
+`apps/nextjs/src/trpc/{react.tsx,server.ts}` and `/api/trpc/[trpc]` import it.
+`transpilePackages` lists all 17 `@disco/*` packages. `pnpm verify` green, 18 packages,
+30 routes, `pnpm boundaries` green.
+
+**`apps/nextjs/src/server/` is gone entirely.** Nothing server-side is left in the app but
+the three route handlers under `src/app/api/`, each of which is now a thin adapter.
+
+**Deleted:** `migrate-images-to-blob.ts` and `gallery/gallery-data.ts` (its only import,
+106 lines of hard-coded photo metadata). The Blob migration shipped in `369c535` and both
+files were reachable only from the `db:migrate-images` script, which is also gone. They
+are in git history if the migration ever needs replaying. **This dropped `@vercel/blob`
+from the app's dependencies** — the last direct vendor import outside a foundation.
+
+**Plan item 4 turned out to be a no-op.** "Remove the now-unused `~/*` alias targets" —
+every surviving `~/` import is app-internal (`~/trpc/react` ×16, `~/app/_components/*`
+×19, `~/trpc/server` ×7). There were no stale targets to remove; the alias earns its keep.
+
+**Plan item 5, partially a no-op:** `*.tsbuildinfo` and `.next/` are both gitignored
+already, so there was nothing tracked to delete. The stale local `tsconfig.tsbuildinfo`
+was removed from disk.
+
+**`transpilePackages` is a hand-maintained list of 17 strings.** Adding an 18th package
+and forgetting to list it fails at build time with a confusing parse error, not a clear
+one. Deriving it from `pnpm-workspace.yaml` is possible but was judged more machinery than
+the risk warrants. Worth revisiting if the package count keeps growing.
+
+`README.md` rewritten for the pnpm/turbo workflow, the layer graph and the vendor seams,
+including the warning that `db:push` runs on every deploy.
+
+---
+
+## Before merging
+
+The automated gates are all green — `pnpm verify` covers lint, boundaries, 30 tests,
+typecheck and build across 18 packages. Three things need a person:
+
+1. **A green Vercel preview deploy of this branch.** Everything since Phase 1 has only
+   been proven locally. Before that first preview, **check whether `DATABASE_URL` is set
+   at project scope or per-environment** — if it is project-scoped, the preview's
+   `db:push` runs against production. The schema has stayed byte-identical through every
+   phase, so a push is a no-op, but verify rather than discover.
+2. **The Stripe CLI replay**, described under [Phase 4](#phase-4--services-tests-first-).
+   The signature path and the `event-missing` path are cheap to exercise; a real test-mode
+   checkout through the UI is what actually proves fulfilment end to end.
+3. **A click-through of every admin screen and both checkout flows** — the Phase 5 gate.
+
+Then: `/code-review` on the branch, delete this file, and merge.
 
 
 ## Test seams

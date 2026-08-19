@@ -180,10 +180,7 @@ export const merchRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { sizes, ...itemData } = input;
       return ctx.db.transaction(async (tx) => {
-        const [item] = await tx
-          .insert(merchItems)
-          .values(itemData)
-          .returning();
+        const [item] = await tx.insert(merchItems).values(itemData).returning();
 
         if (sizes.length > 0) {
           await tx.insert(merchSizes).values(
@@ -233,10 +230,7 @@ export const merchRouter = createTRPCRouter({
   addSize: adminProcedure
     .input(merchSizeCreateSchema)
     .mutation(async ({ ctx, input }) => {
-      const [size] = await ctx.db
-        .insert(merchSizes)
-        .values(input)
-        .returning();
+      const [size] = await ctx.db.insert(merchSizes).values(input).returning();
       return size;
     }),
 
@@ -269,14 +263,11 @@ export const merchRouter = createTRPCRouter({
       if (existing) {
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
-          message:
-            "Cannot delete a size that has completed orders.",
+          message: "Cannot delete a size that has completed orders.",
         });
       }
 
-      await ctx.db
-        .delete(merchSizes)
-        .where(eq(merchSizes.id, input.sizeId));
+      await ctx.db.delete(merchSizes).where(eq(merchSizes.id, input.sizeId));
     }),
 
   delete: adminProcedure
@@ -296,8 +287,7 @@ export const merchRouter = createTRPCRouter({
       if (existing) {
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
-          message:
-            "Cannot delete an item that has completed orders.",
+          message: "Cannot delete an item that has completed orders.",
         });
       }
 
@@ -308,9 +298,7 @@ export const merchRouter = createTRPCRouter({
         .limit(1);
 
       await ctx.db.transaction(async (tx) => {
-        await tx
-          .delete(merchSizes)
-          .where(eq(merchSizes.merchItemId, input.id));
+        await tx.delete(merchSizes).where(eq(merchSizes.merchItemId, input.id));
         await tx.delete(merchItems).where(eq(merchItems.id, input.id));
       });
 

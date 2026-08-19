@@ -14,12 +14,12 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx --env-file=.env ../../packages/foundations/db/src/seed.ts",
-    "db:migrate-images": "tsx --env-file=.env src/server/db/migrate-images-to-blob.ts"
+    "db:seed": "tsx --env-file=.env ../../packages/foundations/db/src/seed.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.6",
     "@disco/admin-feature": "workspace:*",
+    "@disco/api": "workspace:*",
     "@disco/auth": "workspace:*",
     "@disco/db": "workspace:*",
     "@disco/email": "workspace:*",
@@ -42,7 +42,6 @@
     "@trpc/react-query": "^11.0.0",
     "@trpc/server": "^11.0.0",
     "@vercel/analytics": "^1.6.1",
-    "@vercel/blob": "^2.6.1",
     "drizzle-orm": "^0.41.0",
     "next": "^15.2.3",
     "react": "^19.0.0",

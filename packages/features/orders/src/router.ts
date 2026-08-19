@@ -73,10 +73,7 @@ export const orderRouter = createTRPCRouter({
         .select()
         .from(orders)
         .where(
-          and(
-            eq(orders.id, input.orderId),
-            eq(orders.clerkUserId, ctx.userId),
-          ),
+          and(eq(orders.id, input.orderId), eq(orders.clerkUserId, ctx.userId)),
         )
         .leftJoin(events, eq(orders.eventId, events.id));
 

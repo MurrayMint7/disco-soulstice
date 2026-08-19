@@ -13,6 +13,7 @@ const config: NextConfig = {
    */
   transpilePackages: [
     "@disco/admin-feature",
+    "@disco/api",
     "@disco/auth",
     "@disco/db",
     "@disco/email",

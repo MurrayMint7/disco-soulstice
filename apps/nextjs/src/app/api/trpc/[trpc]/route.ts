@@ -2,7 +2,7 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { type NextRequest } from "next/server";
 
 import { env } from "@disco/env";
-import { appRouter } from "~/server/api/root";
+import { appRouter } from "@disco/api";
 import { createTRPCContext } from "@disco/trpc";
 
 /**

@@ -6,9 +6,8 @@ import { orderRouter } from "@disco/orders-feature";
 import { createCallerFactory, createTRPCRouter } from "@disco/trpc";
 
 /**
- * This is the primary router for your server.
- *
- * All routers added in /api/routers should be manually added here.
+ * The one place the feature routers are composed. Everything the app can call
+ * over tRPC is reachable from here, and nothing else assembles a router.
  */
 export const appRouter = createTRPCRouter({
   event: eventRouter,
