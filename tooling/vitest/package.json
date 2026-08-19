@@ -1,0 +1,11 @@
+{
+  "name": "@disco/vitest-config",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "dependencies": {
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,10 @@
+packages:
+  - "apps/*"
+  - "packages/foundations/*"
+  - "packages/services/*"
+  - "packages/features/*"
+  - "packages/compositions/*"
+  - "tooling/*"
+allowBuilds:
+  esbuild: true
+  sharp: true

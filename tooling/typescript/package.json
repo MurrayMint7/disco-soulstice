@@ -1,0 +1,10 @@
+{
+  "name": "@disco/typescript-config",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./base.json": "./tsconfig/base.json",
+    "./next.json": "./tsconfig/next.json",
+    "./package.json": "./tsconfig/package.json"
+  }
+}

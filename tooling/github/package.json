@@ -1,0 +1,8 @@
+{
+  "name": "@disco/github-config",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  }
+}

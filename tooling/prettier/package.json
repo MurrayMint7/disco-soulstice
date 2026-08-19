@@ -1,0 +1,14 @@
+{
+  "name": "@disco/prettier-config",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.mjs"
+  },
+  "peerDependencies": {
+    "prettier": "^3.6.2"
+  },
+  "dependencies": {
+    "prettier-plugin-tailwindcss": "^0.6.11"
+  }
+}
