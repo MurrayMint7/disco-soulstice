@@ -652,6 +652,16 @@ typecheck and build across 18 packages. Three things need a person:
    checkout through the UI is what actually proves fulfilment end to end.
 3. **A click-through of every admin screen and both checkout flows** — the Phase 5 gate.
 
+**The merge path is no longer a single PR.** `origin/main` is already at `95d5304`
+("Document db:push in the deploy path") — Phases 0, 1 and 2 have been pushed to `main`
+directly, and `origin/main` is an ancestor of this branch. So the PR covers Phases 3–6
+only, and `main` is *already* the monorepo: the app is at `apps/nextjs`, the Vercel
+settings changed with it, and production is running on that layout. Nothing about the
+work changes, but the "single PR into `main`" framing at the top of this file describes
+an intent that events overtook.
+
+The four Phase 3–6 commits are local only; the branch is 4 ahead of its remote.
+
 Then: `/code-review` on the branch, delete this file, and merge.
 
 
