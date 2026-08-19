@@ -1,9 +1,8 @@
-import { postRouter } from "~/server/api/routers/post";
-import { eventRouter } from "~/server/api/routers/event";
-import { orderRouter } from "~/server/api/routers/order";
-import { adminRouter } from "~/server/api/routers/admin";
-import { merchRouter } from "~/server/api/routers/merch";
-import { galleryRouter } from "~/server/api/routers/gallery";
+import { adminRouter } from "@disco/admin-feature";
+import { eventRouter } from "@disco/events-feature";
+import { galleryRouter } from "@disco/gallery-feature";
+import { merchRouter } from "@disco/merch-feature";
+import { orderRouter } from "@disco/orders-feature";
 import { createCallerFactory, createTRPCRouter } from "@disco/trpc";
 
 /**
@@ -12,7 +11,6 @@ import { createCallerFactory, createTRPCRouter } from "@disco/trpc";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  post: postRouter,
   event: eventRouter,
   order: orderRouter,
   admin: adminRouter,
@@ -27,7 +25,6 @@ export type AppRouter = typeof appRouter;
  * Create a server-side caller for the tRPC API.
  * @example
  * const trpc = createCaller(createContext);
- * const res = await trpc.post.all();
- *       ^? Post[]
+ * const res = await trpc.event.list();
  */
 export const createCaller = createCallerFactory(appRouter);

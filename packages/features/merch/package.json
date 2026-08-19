@@ -1,0 +1,32 @@
+{
+  "name": "@disco/merch-feature",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@disco/auth": "workspace:*",
+    "@disco/db": "workspace:*",
+    "@disco/merch-service": "workspace:*",
+    "@disco/payments": "workspace:*",
+    "@disco/storage": "workspace:*",
+    "@disco/trpc": "workspace:*",
+    "@disco/validators": "workspace:*",
+    "@trpc/server": "^11.0.0",
+    "drizzle-orm": "^0.41.0"
+  },
+  "devDependencies": {
+    "@disco/eslint-config": "workspace:*",
+    "@disco/typescript-config": "workspace:*",
+    "@disco/vitest-config": "workspace:*",
+    "eslint": "^9.29.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

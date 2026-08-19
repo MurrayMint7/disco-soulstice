@@ -12,11 +12,16 @@ const config: NextConfig = {
    * compile them itself.
    */
   transpilePackages: [
+    "@disco/admin-feature",
     "@disco/auth",
     "@disco/db",
     "@disco/email",
     "@disco/env",
+    "@disco/events-feature",
+    "@disco/gallery-feature",
+    "@disco/merch-feature",
     "@disco/merch-service",
+    "@disco/orders-feature",
     "@disco/payments",
     "@disco/query-client",
     "@disco/storage",

@@ -7,7 +7,7 @@ with **identical functionality** — auth, billing, email, uploads, admin, all o
 - **Branch:** `refactor/turborepo-monorepo` (off `origin/main` @ `369c535`)
 - **Merge path:** single PR into `main` when the refactor is complete
 - **Starter baseline:** `turborepo-starter` `main` @ `ab12a85`
-- **Status:** Phases 0–4 complete (`pnpm verify` green). Phase 5 is next.
+- **Status:** Phases 0–5 complete (`pnpm verify` green). Phase 6 is next.
   One manual gate is outstanding — see [Phase 4](#phase-4--services-tests-first-).
   See [Implementation log](#implementation-log).
 
@@ -572,6 +572,33 @@ branch with `eventId: NaN`, finds no event row, and bails — which exercises th
 check and the `event-missing` path but not fulfilment. To exercise fulfilment properly,
 drive a real test-mode checkout through the UI, or replay a captured event with
 `stripe events resend <id>`. The row and email should be identical to `main`'s.
+
+
+### Phase 5 — Features ✅
+
+Five packages, one router each: `@disco/events-feature`, `@disco/orders-feature`,
+`@disco/merch-feature`, `@disco/gallery-feature`, `@disco/admin-feature`. Every router
+moved by `git mv` **with no edit to its body** — Phases 3 and 4 had already rewritten
+their imports and pulled their logic out, so this phase is pure relocation. `pnpm verify`
+green; the build emits the same 31 routes.
+
+`postRouter` and `src/app/_components/post.tsx` deleted. `grep` for `postRouter`,
+`LatestPost` and `api.post` across `apps` and `packages` returns nothing. **The `posts`
+table stays in `schema.ts`** — `db:push` runs on every deploy, so removing it would drop
+a live table. See [Dead code](#dead-code).
+
+**The `declaration: true` hazard flagged in Phase 1 did not materialise.** The concern
+was that a feature package re-exporting an inferred tRPC router type would hit the same
+"cannot be named portably" error that broke `createTRPCReact<AppRouter>()`. It did not:
+`noEmit: true` in `@disco/typescript-config/package.json` means TypeScript never has to
+name those types. Left as-is. **If a package ever sets `noEmit: false`, this comes back.**
+
+**The app's server directory is nearly empty now.** All that remains under
+`apps/nextjs/src/server/` is `api/root.ts` — which becomes `@disco/api` in Phase 6 — and
+`db/migrate-images-to-blob.ts`, the spent one-off queued for deletion.
+
+**Outstanding manual gate:** click through every admin screen and both checkout flows.
+Not automatable here; the build and the type-checked router surface are the automated half.
 
 
 ## Test seams

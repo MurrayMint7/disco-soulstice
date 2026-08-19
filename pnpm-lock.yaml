@@ -41,6 +41,9 @@ importers:
       '@clerk/nextjs':
         specifier: ^7.0.6
         version: 7.7.8(next@15.5.23(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@disco/admin-feature':
+        specifier: workspace:*
+        version: link:../../packages/features/admin
       '@disco/auth':
         specifier: workspace:*
         version: link:../../packages/foundations/auth
@@ -53,9 +56,21 @@ importers:
       '@disco/env':
         specifier: workspace:*
         version: link:../../packages/foundations/env
+      '@disco/events-feature':
+        specifier: workspace:*
+        version: link:../../packages/features/events
+      '@disco/gallery-feature':
+        specifier: workspace:*
+        version: link:../../packages/features/gallery
+      '@disco/merch-feature':
+        specifier: workspace:*
+        version: link:../../packages/features/merch
       '@disco/merch-service':
         specifier: workspace:*
         version: link:../../packages/services/merch
+      '@disco/orders-feature':
+        specifier: workspace:*
+        version: link:../../packages/features/orders
       '@disco/payments':
         specifier: workspace:*
         version: link:../../packages/foundations/payments
@@ -156,6 +171,215 @@ importers:
       tsx:
         specifier: ^4.23.0
         version: 4.23.12
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/features/admin:
+    dependencies:
+      '@disco/db':
+        specifier: workspace:*
+        version: link:../../foundations/db
+      '@disco/trpc':
+        specifier: workspace:*
+        version: link:../../foundations/trpc
+      '@disco/validators':
+        specifier: workspace:*
+        version: link:../../foundations/validators
+      drizzle-orm:
+        specifier: ^0.41.0
+        version: 0.41.0(postgres@3.4.9)
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/features/events:
+    dependencies:
+      '@disco/db':
+        specifier: workspace:*
+        version: link:../../foundations/db
+      '@disco/storage':
+        specifier: workspace:*
+        version: link:../../foundations/storage
+      '@disco/trpc':
+        specifier: workspace:*
+        version: link:../../foundations/trpc
+      '@disco/validators':
+        specifier: workspace:*
+        version: link:../../foundations/validators
+      '@trpc/server':
+        specifier: ^11.0.0
+        version: 11.18.0(typescript@5.9.3)
+      drizzle-orm:
+        specifier: ^0.41.0
+        version: 0.41.0(postgres@3.4.9)
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/features/gallery:
+    dependencies:
+      '@disco/db':
+        specifier: workspace:*
+        version: link:../../foundations/db
+      '@disco/storage':
+        specifier: workspace:*
+        version: link:../../foundations/storage
+      '@disco/trpc':
+        specifier: workspace:*
+        version: link:../../foundations/trpc
+      '@disco/validators':
+        specifier: workspace:*
+        version: link:../../foundations/validators
+      '@trpc/server':
+        specifier: ^11.0.0
+        version: 11.18.0(typescript@5.9.3)
+      drizzle-orm:
+        specifier: ^0.41.0
+        version: 0.41.0(postgres@3.4.9)
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/features/merch:
+    dependencies:
+      '@disco/auth':
+        specifier: workspace:*
+        version: link:../../foundations/auth
+      '@disco/db':
+        specifier: workspace:*
+        version: link:../../foundations/db
+      '@disco/merch-service':
+        specifier: workspace:*
+        version: link:../../services/merch
+      '@disco/payments':
+        specifier: workspace:*
+        version: link:../../foundations/payments
+      '@disco/storage':
+        specifier: workspace:*
+        version: link:../../foundations/storage
+      '@disco/trpc':
+        specifier: workspace:*
+        version: link:../../foundations/trpc
+      '@disco/validators':
+        specifier: workspace:*
+        version: link:../../foundations/validators
+      '@trpc/server':
+        specifier: ^11.0.0
+        version: 11.18.0(typescript@5.9.3)
+      drizzle-orm:
+        specifier: ^0.41.0
+        version: 0.41.0(postgres@3.4.9)
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/features/orders:
+    dependencies:
+      '@disco/auth':
+        specifier: workspace:*
+        version: link:../../foundations/auth
+      '@disco/db':
+        specifier: workspace:*
+        version: link:../../foundations/db
+      '@disco/payments':
+        specifier: workspace:*
+        version: link:../../foundations/payments
+      '@disco/ticketing-service':
+        specifier: workspace:*
+        version: link:../../services/ticketing
+      '@disco/trpc':
+        specifier: workspace:*
+        version: link:../../foundations/trpc
+      '@disco/validators':
+        specifier: workspace:*
+        version: link:../../foundations/validators
+      '@trpc/server':
+        specifier: ^11.0.0
+        version: 11.18.0(typescript@5.9.3)
+      drizzle-orm:
+        specifier: ^0.41.0
+        version: 0.41.0(postgres@3.4.9)
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
       typescript:
         specifier: ^5.8.3
         version: 5.9.3

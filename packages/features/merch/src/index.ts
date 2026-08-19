@@ -1,0 +1,1 @@
+export { merchRouter } from "./router";
