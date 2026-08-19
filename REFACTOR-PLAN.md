@@ -4,212 +4,404 @@ Migrating `disco-soulstice` from its create-t3-app single-package layout onto th
 layered monorepo structure from [`MurrayMint7/turborepo-starter`](https://github.com/MurrayMint7/turborepo-starter),
 with **identical functionality** — auth, billing, email, uploads, admin, all of it.
 
-- **Branch:** `refactor/turborepo-monorepo` (already created, off `origin/main` @ `369c535`)
+- **Branch:** `refactor/turborepo-monorepo` (off `origin/main` @ `369c535`)
 - **Merge path:** single PR into `main` when the refactor is complete
-- **Starter baseline:** `turborepo-starter` `main` @ `ab12a85` (merge of `starter-infra-layers`)
-- **Status:** planning not yet started — see [Start here](#start-here)
+- **Starter baseline:** `turborepo-starter` `main` @ `ab12a85`
+- **Status:** Phases 0 and 1 complete (`pnpm verify` green). Phase 2 is next.
+  See [Implementation log](#implementation-log).
 
-> This file is scaffolding for the refactor. Delete it before merging the PR, or fold
-> it into `docs/`. It is *not* the same document as [`plan.md`](plan.md), which is the
-> original 1,119-line ticketing-system implementation plan and stays as-is.
-
----
-
-## Start here
-
-The workflow below uses skills that are **user-invocation only** (`disable-model-invocation: true`).
-Claude cannot launch them for you — type them yourself, from this directory.
-
-```bash
-cd ~/Projects/disco-soulstice
-git switch refactor/turborepo-monorepo   # should already be checked out
-claude
-```
-
-Then, in order:
-
-| # | Command | Purpose | Done |
-|---|---------|---------|------|
-| 0 | `/setup-matt-pocock-skills` | Writes `CLAUDE.md` + `docs/agents/` so the later skills know where the tracker is. **Prerequisite.** | ☐ |
-| 1 | `/wayfinder` | Chart the decision map. Resolve the open questions below, one ticket at a time. | ☐ |
-| 2 | `/to-spec` | Synthesise the resolved map into a spec on GitHub Issues. | ☐ |
-| 3 | `/to-tickets` | Break the spec into tracer-bullet tickets with blocking edges. | ☐ |
-| 4 | `/implement` | Execute the tickets, TDD at agreed seams. | ☐ |
-| 5 | `/code-review` | Review the branch before the PR merges. | ☐ |
-
-**Answers for step 0** (already decided, so you can accept them in a word):
-GitHub tracker (`MurrayMint7/disco-soulstice`) · default triage labels · single-context domain docs · create `CLAUDE.md`.
-
-**Opening prompt for step 1:**
-
-> Refactor disco-soulstice onto the turborepo-starter layered monorepo (`main@ab12a85`),
-> preserving identical functionality — Clerk auth, Stripe billing + webhook, tRPC,
-> Drizzle/Postgres, Resend, Vercel Blob. Destination: a spec ready to ticket.
-> Work lands on `refactor/turborepo-monorepo`, merged via PR.
-> Read `REFACTOR-PLAN.md` first.
+> Delete this file before merging the PR, or fold it into `docs/`. It is *not*
+> [`plan.md`](plan.md), which is the original ticketing-system implementation plan
+> and stays as-is.
 
 ---
 
 ## The single most important fact
 
-**The starter is a skeleton, not working infrastructure.**
-
-Its entire `packages/` tree is **214 lines of source**. Every foundation package is a
-zero-dependency abstraction with placeholder logic and a passing unit test:
-
-| Package | Deps | Source | What's actually in it |
-|---|---|---|---|
-| `@starter/auth` | *none* | 18 lines | `isSignedIn()`, `canAccessAdmin()` over a plain `AuthenticatedUser` type. **No Clerk.** |
-| `@starter/billing` | *none* | 35 lines | Pure pricing/subscription helpers. **No Stripe.** |
-| `@starter/db` | *none* | 16 lines | Placeholder. **No Drizzle, no schema, no connection.** |
-| `@starter/trpc` | `@starter/auth` | 9 lines | Context type only. **No tRPC server.** |
-| `@starter/validators` | `zod` | 11 lines | Two sample schemas. |
-| `@starter/env-schema` | `zod` | 17 lines | Sample env shape. |
-| `@starter/query-client` | *none* | 11 lines | Placeholder. |
-| `@starter/ui` | *none* | 1 line | Empty barrel + `primitives/`. |
+**The starter is a skeleton, not working infrastructure.** Its entire `packages/` tree
+is 214 lines of source — every foundation is a zero-dependency placeholder with a
+passing unit test. `@starter/auth` has no Clerk. `@starter/billing` has no Stripe.
+`@starter/db` has no Drizzle.
 
 So this refactor is **not** "move disco-soulstice's files into ready-made packages."
 It is: *adopt the starter's structure, tooling and boundary rules, then build the real
-foundations by porting disco-soulstice's 7,480 lines of working code into that shape.*
+foundations by porting this repo's 7,546 lines of working code into that shape.*
 
-The starter contributes the **shape and the guardrails**. This repo contributes **all the behaviour**.
+The starter contributes the **shape and the guardrails**. This repo contributes **all
+the behaviour**.
 
-Corollary: `packages/services/chat`, `packages/features/conversations`, and
+`packages/services/chat`, `packages/features/conversations` and
 `packages/compositions/admin` are template leftovers from an unrelated chat app.
-Delete them — don't try to bend disco-soulstice into them.
+Delete them — don't bend disco-soulstice into them.
 
 ---
 
-## What has to move
+## Resolved decisions
 
-### tRPC routers — 847 lines
-
-| Router | LOC | Notes |
+| # | Question | Decision |
 |---|---|---|
-| `merch.ts` | 379 | Largest. Items, sizes, orders, Stripe checkout. |
-| `event.ts` | 159 | Events + ticket purchase. |
-| `order.ts` | 138 | Ticket orders, confirmation. |
-| `gallery.ts` | 84 | Albums + images. |
-| `admin.ts` | 57 | Admin dashboard queries. |
-| `post.ts` | 30 | **create-t3-app scaffold — verify it's unused and delete.** |
+| 1 | Where does each router land? | **Full layering.** Vendor clients → foundations. Payment-fulfilment logic → services. Routers → features. `appRouter` → composition. Routes/middleware/pages → app. |
+| 2 | How thick is the auth boundary? | **Clerk lives inside `@disco/auth`.** One vendor seam. Nothing else imports `@clerk/nextjs` except `apps/nextjs/src/middleware.ts`, which Next.js requires at the app root. |
+| 3 | One db package or split? | **One `@disco/db`.** All 9 tables, one `pgTableCreator`, relations intact. Splitting fights Drizzle's relations for no gain. |
+| 4 | npm → pnpm? | **pnpm `11.9.0`**, matching the starter. Delete `package-lock.json`, regenerate `pnpm-lock.yaml`, update CI and Vercel's install command. The `esbuild` override becomes `allowBuilds.esbuild` in `pnpm-workspace.yaml` (already present in the starter). |
+| 5 | Package naming? | **`@disco/*`.** Requires a one-line change to the `@starter/` regex in `scripts/check-layer-boundaries.mjs`. |
+| 6 | Test seam? | **Pure-logic characterisation tests**, Vitest, no DB or network. Written *before* each service moves. Seams listed under [Test seams](#test-seams). |
+| 7 | Is `post.ts` dead? | **Yes — confirmed.** `LatestPost` in `src/app/_components/post.tsx` is imported nowhere. Delete the router and the component. **Keep the `posts` table in the schema** (see [Dead code](#dead-code)). |
+| 8 | Tailwind version? | **Upgrade to `4.3.3`** (npm `latest`) from this repo's `4.0.15` and the starter's `4.1.11`. **Tailwind v5 is not released** — the registry has no 5.x at all. Done in Phase 0 so any visual regression surfaces before code moves. |
 
-Plus `src/server/api/trpc.ts` (125 lines — context, `protectedProcedure`, admin guard)
-and `src/server/api/root.ts`.
+### Corrections to earlier assumptions
 
-### Database — 315 lines
-
-Drizzle schema, 9 tables, all under the `disco-soulstice_` table prefix (see `drizzle.config.ts`):
-`posts`, `events`, `orders`, `tickets`, `merchItems`, `merchSizes`, `merchOrders`,
-`galleryAlbums`, `galleryImages`.
-
-Also `src/server/db/seed.ts` and the one-off `migrate-images-to-blob.ts`.
-
-> **The table prefix must not change.** It's a live Neon database. Renaming tables is a
-> data migration, not a refactor — keep the prefix identical and this stays a pure code move.
-
-### Integrations
-
-- **Clerk** — `src/middleware.ts` protects `/checkout(.*)`, `/orders(.*)`, `/admin(.*)`.
-  Sign-in/up catch-all routes. Middleware **must stay at the app root** (`apps/*/src/middleware.ts`);
-  Next.js won't find it in a package.
-- **Stripe** — `src/server/stripe.ts` (lazily instantiated, deliberately — see `e130d5d`),
-  `/api/webhooks/stripe` handling `payment_intent.succeeded` / `payment_intent.payment_failed`,
-  `@stripe/react-stripe-js` on the checkout pages.
-- **Resend** — `src/server/resend.ts` (also lazy — `233c125`), plus
-  `send-ticket-confirmation.ts` and `send-merch-confirmation.ts`. QR codes via `qrcode`.
-- **Vercel Blob** — `src/lib/upload-image.ts`, `/api/blob/upload`, `admin/_components/image-upload.tsx`.
-  Migrated off UploadThing recently (`0d145fe`) — don't regress it.
-
-> Keep the lazy instantiation of Stripe and Resend. Both were deliberate fixes for
-> build-time env access; eager module-level clients break `next build`.
-
-### App Router — 31 route files
-
-`/` · `/events` · `/events/[slug]` · `/events/history` · `/merch` · `/merch/[slug]` ·
-`/gallery` · `/contact` · `/checkout/[eventSlug]` · `/checkout/merch/[slug]` ·
-`/orders` · `/orders/[orderId]` · `/orders/merch/[orderId]` · `/orders/confirm` ·
-`/sign-in` · `/sign-up` · 7 × `/admin/*` · 3 API routes.
-
-Shared components in `src/app/_components/` (header, footer, hero, events, interactive-vinyl, post).
-
-### Environment — 14 variables
-
-`src/env.js` uses `@t3-oss/env-nextjs`. Server: `DATABASE_URL`, `NODE_ENV`,
-`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CLERK_SECRET_KEY`, `RESEND_API_KEY`,
-`BLOB_READ_WRITE_TOKEN`. Client: `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`,
-`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, four `NEXT_PUBLIC_CLERK_*` URL vars, `NEXT_PUBLIC_APP_URL`.
+- **The database is Vercel Postgres, not Neon.** `DATABASE_URL` is provided by Vercel.
+  The "don't touch the `disco-soulstice_` prefix" rule stands regardless.
+- **There is no `drizzle/` migrations directory.** The schema has only ever been
+  `db:push`ed. No migration history to carry across — the DB move is cleaner than assumed.
+- **`.vercel/repo.json` pins `"directory": "."`.** That is the concrete artefact that
+  must change when the app moves to `apps/nextjs`.
+- **`drizzle.config.ts` imports `~/env`**, so the env package must be resolvable from
+  repo-root tooling, not only from the app.
+- **The app directory keeps the starter's name, `apps/nextjs`** (package `@disco/nextjs`),
+  to minimise gratuitous divergence from the starter.
 
 ---
 
-## Open questions for `/wayfinder`
+## Target layout
 
-These are **decisions**, not tasks — which is exactly what wayfinder tickets are for.
-Don't start `/implement` until they're resolved.
+```txt
+apps/nextjs/                     @disco/nextjs
+  src/app/                       31 route files, _components/, api routes
+  src/middleware.ts              clerkMiddleware — must stay at app root
+  src/trpc/react.tsx             TRPCReactProvider (Next-specific)
+  src/trpc/server.ts             RSC hydration helpers (server-only, next/headers)
+  src/styles/globals.css         Tailwind 4.3 entry + @source directives
 
-1. **Where does each router land?** The starter's layers run
-   `foundations → services → features → compositions → apps`, enforced by
-   `scripts/check-layer-boundaries.mjs`. Is `merch` a *feature* over a `db` foundation?
-   Does Stripe checkout logic live in a `billing` service? This is the core design
-   question and everything else follows from it.
+packages/foundations/
+  env                @disco/env                @t3-oss/env-nextjs, zod
+  db                 @disco/db                 drizzle, postgres, schema, seed
+  auth               @disco/auth               @clerk/nextjs — the only importer
+  payments           @disco/payments           stripe (lazy), webhook verification
+  email              @disco/email              resend (lazy), qrcode, confirmations
+  storage            @disco/storage            @vercel/blob — upload + delete
+  validators         @disco/validators         zod schemas shared router↔form
+  trpc               @disco/trpc               initTRPC, context, procedures
+  query-client       @disco/query-client       tanstack + superjson factory
+  ui                 @disco/ui                 genuinely shared primitives only
 
-2. **How thick is the auth boundary?** The starter's `@starter/auth` is deliberately
-   Clerk-free. Do we keep that abstraction and write a Clerk adapter behind it, or admit
-   Clerk into the foundation? The pure version is more testable; the adapter is more code.
+packages/services/
+  ticketing          @disco/ticketing-service  ticket fulfilment, codes, capacity
+  merch              @disco/merch-service      merch fulfilment, stock, totals
 
-3. **Does the Drizzle schema stay one package or split by domain?** One `@repo/db` with
-   all 9 tables is simplest and matches the current shape. Splitting per-feature fights
-   Drizzle's relations.
+packages/features/
+  events             @disco/events-feature     eventRouter
+  orders             @disco/orders-feature     orderRouter
+  merch              @disco/merch-feature      merchRouter
+  gallery            @disco/gallery-feature    galleryRouter
+  admin              @disco/admin-feature      adminRouter
 
-4. **npm → pnpm.** The starter is `pnpm@11.9.0` with a workspace; this repo is
-   `npm@11.6.2` with `package-lock.json` and an `esbuild` override. Committing to pnpm
-   means regenerating the lockfile, updating CI, and **changing Vercel's install command** —
-   easy to forget until the first deploy fails.
+packages/compositions/
+  api                @disco/api                appRouter, createCaller, AppRouter
 
-5. **Package naming.** Starter uses `@starter/*`. Rename to `@disco/*` (or keep)?
-   Cheap to decide now, tedious to change after 20 packages exist.
+tooling/             eslint prettier tailwind typescript vitest github
+scripts/check-layer-boundaries.mjs
+```
 
-6. **What's the test seam?** The starter ships Vitest and the foundations have unit tests;
-   this repo currently has **no tests at all**. `/implement` wants TDD at pre-agreed seams —
-   agree them during wayfinding. A refactor with identical behaviour is the ideal place for
-   characterisation tests, and there's currently nothing to catch a regression.
+**Where app chrome stays:** `header`, `footer`, `hero`, `events`, `interactive-vinyl`
+are app-specific chrome, not reusable primitives. They stay in
+`apps/nextjs/src/app/_components/`. `@disco/ui` starts thin — the starter's `Button`
+plus anything the admin screens genuinely share (`image-upload` is the candidate).
+Promote into `@disco/ui` later, when a second consumer exists.
 
-7. **Is `post.ts` dead?** 30 lines of create-t3-app scaffold plus a `posts` table and
-   `_components/post.tsx`. Confirm and delete rather than porting.
+**Where the layers actually bind:**
+
+```txt
+apps/nextjs
+  ├─ @disco/api ──────── @disco/*-feature ──┬─ @disco/trpc ──┬─ @disco/auth
+  │                                          │                └─ @disco/db
+  │                                          ├─ @disco/*-service
+  │                                          ├─ @disco/validators
+  │                                          ├─ @disco/payments
+  │                                          └─ @disco/storage
+  ├─ @disco/*-service (webhook route calls these directly)
+  ├─ @disco/auth (middleware only)
+  ├─ @disco/query-client, @disco/ui, @disco/env
+  └─ every foundation transitively
+```
+
+---
+
+## Phases
+
+Each phase ends with `pnpm verify` green and the branch deployable. Do not start
+the next phase until the current one is committed.
+
+### Phase 0 — Scaffold and tooling (no app code moves)
+
+Graft the starter's skeleton onto this repo. Nothing in `src/` moves yet.
+
+1. Copy from `~/Projects/turborepo-starter`: `turbo.json`, `pnpm-workspace.yaml`,
+   `.npmrc`, `prettier.config.mjs`, `scripts/`, `tooling/`. **Do not copy `.next/`,
+   `node_modules/`, `.turbo/`, or `pnpm-lock.yaml`.**
+2. Rename `@starter/*` → `@disco/*` throughout the copied files, including the
+   `@starter\/` regex in `scripts/check-layer-boundaries.mjs`.
+3. Replace root `package.json` with the starter's, renamed, `packageManager: "pnpm@11.9.0"`.
+4. Port this repo's ESLint rules into `tooling/eslint/eslint/base.mjs`:
+   `recommendedTypeChecked`, `stylisticTypeChecked`, `consistent-type-imports`,
+   `no-misused-promises`, and the `drizzle/enforce-{delete,update}-with-where` rules.
+   Type-checked linting needs `parserOptions.projectService` — verify it resolves
+   per-package before moving on.
+5. Add `verbatimModuleSyntax: true` to `tooling/typescript/tsconfig/base.json`
+   (the starter omits it; this repo relies on it).
+6. Bump `tailwindcss` and `@tailwindcss/postcss` to `^4.3.3` (npm `latest`; there is
+   no v5). Nothing else changes in this step, so any visual diff is attributable.
+7. `rm package-lock.json`, `pnpm install`, commit `pnpm-lock.yaml`.
+8. Delete `packages/services/chat`, `packages/features/conversations`,
+   `packages/compositions/admin` if the graft brought them.
+
+**Gate:** `pnpm boundaries` passes on an empty workspace. The old app still builds
+via its own scripts.
+
+### Phase 1 — Move the app wholesale (still monolithic)
+
+The whole of `src/` becomes `apps/nextjs/src/` in one `git mv`, with zero
+restructuring inside it. This is the highest-risk-of-tedium, lowest-risk-of-logic-bug
+step, and it gets the deploy config verified early.
+
+1. `git mv src apps/nextjs/src`, plus `public/`, `next.config.js` → `next.config.ts`,
+   `postcss.config.js`, `next-env.d.ts`, `drizzle.config.ts`, `start-database.sh`.
+2. Write `apps/nextjs/package.json` (`@disco/nextjs`) with every current dependency,
+   `apps/nextjs/tsconfig.json` extending `@disco/typescript-config/next.json` and
+   keeping the `~/*` → `./src/*` path alias, `eslint.config.mjs`, `vitest.config.ts`.
+3. Rewrite `.github/workflows/ci.yml`: pnpm + `pnpm install --frozen-lockfile` +
+   `pnpm verify`. Copy the conventions from `tooling/github/index.ts`.
+4. **Update Vercel:** set Root Directory to `apps/nextjs`, install command to
+   `pnpm install --frozen-lockfile`, build command to `pnpm build`. Update
+   `.vercel/repo.json`'s `"directory"` to `apps/nextjs`.
+5. **Confirm `/api/webhooks/stripe` still resolves at the same URL.** The path is
+   registered in the live Stripe dashboard; it must not change.
+
+**Gate:** `pnpm verify` green, **and a Vercel preview deploy succeeds and serves the
+site**. Do not proceed on a red preview — everything after this compounds on it.
+
+### Phase 2 — Foundations: env and db
+
+The two everything else depends on.
+
+1. `@disco/env` — port `src/env.js` to `src/index.ts` (TypeScript, not JS; `checkJs`
+   goes away). All 14 variables unchanged. Keep `skipValidation` on `SKIP_ENV_VALIDATION`.
+2. `@disco/db` — `schema.ts` verbatim (prefix `disco-soulstice_` **untouched**),
+   `index.ts` connection with the dev-HMR global cache, `seed.ts`,
+   `migrate-images-to-blob.ts`. Owns `drizzle.config.ts` and the `db:*` scripts;
+   the root `package.json` proxies them.
+3. Add `@source` directives to `apps/nextjs/src/styles/globals.css` for any package
+   that will contain Tailwind classes — Tailwind does not scan workspace
+   dependencies automatically.
+
+**Gate:** `pnpm verify` green. `pnpm db:studio` connects. Styles unchanged in dev.
+
+### Phase 3 — Remaining foundations
+
+Ported behaviour-for-behaviour; no logic changes.
+
+- `@disco/auth` — `getCurrentUserId()`, `requireAdmin(userId)`,
+  `getUserProfile(userId) → { email, name }`. Absorbs the `clerkClient()` calls
+  currently duplicated in `trpc.ts`, `merch.ts`, `order.ts` and the blob route.
+- `@disco/payments` — the lazy Stripe `Proxy` **exactly as-is** (`e130d5d` fixed a
+  real build-time env-access bug; an eager module-level client breaks `next build`),
+  plus `constructWebhookEvent(body, signature)` and a `createPaymentIntent` helper.
+- `@disco/email` — the lazy Resend `Proxy` (same reasoning, `233c125`),
+  `sendTicketConfirmation`, `sendMerchConfirmation`, `qrcode`.
+- `@disco/storage` — `del` wrapper for server deletes, `uploadImageFile` and
+  `detectImageAspect` for the client, and the `handleUpload` token policy from
+  `/api/blob/upload` (the route becomes a thin handler). Vercel Blob only — do not
+  regress to UploadThing (`0d145fe`).
+- `@disco/validators` — zod schemas currently inline in the routers, so admin forms
+  and procedures share one definition.
+- `@disco/query-client` — `createQueryClient` from `src/trpc/query-client.ts`.
+- `@disco/trpc` — `initTRPC`, superjson, the Zod error formatter, `createTRPCContext`,
+  `publicProcedure` / `authedProcedure` / `adminProcedure`, `timingMiddleware`.
+  Depends on `@disco/auth` and `@disco/db`.
+
+**Gate:** `pnpm verify` green. `grep -rn "@clerk/nextjs" apps packages` returns only
+`@disco/auth` and `apps/nextjs/src/middleware.ts`.
+
+### Phase 4 — Services (tests first)
+
+The only phase where logic is genuinely restructured rather than relocated. Write the
+characterisation test, watch it pass against the current inline code, then move the code.
+
+- `@disco/ticketing-service` — `fulfilTicketPayment(metadata, deps)`: the ticket half
+  of the Stripe webhook, including the idempotency check, the `events.ticketsSold`
+  increment, `uuid` ticket-code generation, and the confirmation-email payload.
+  Also the capacity guard from `event.ts`.
+- `@disco/merch-service` — `fulfilMerchPayment(metadata, deps)`: the merch half,
+  including idempotency, the `merchSizes.sold` increment, and the confirmation payload.
+  Also the stock / `maxPerOrder` / total-price guards from `merch.ts`.
+
+Both take their DB transaction and email sender as injected `deps`, so the tests need
+no database and no network. `/api/webhooks/stripe` becomes: verify signature via
+`@disco/payments`, branch on `metadata.type`, delegate.
+
+**Gate:** `pnpm verify` green, all characterisation tests pass, **and a Stripe CLI
+`stripe trigger payment_intent.succeeded` against the local webhook produces an
+identical row + email to before.**
+
+### Phase 5 — Features
+
+One package per router, moved with no logic change now that the services exist.
+`events` · `orders` · `merch` · `gallery` · `admin`. Each depends on `@disco/trpc`,
+`@disco/validators` and whichever services/foundations it needs.
+
+Delete `post.ts` and `src/app/_components/post.tsx` here.
+
+**Gate:** `pnpm verify` green. Every admin screen and checkout flow clicked through by hand.
+
+### Phase 6 — Composition and cleanup
+
+1. `@disco/api` — `appRouter`, `createCaller`, the `AppRouter` type.
+2. `apps/nextjs/src/trpc/{react.tsx,server.ts}` import `@disco/api`.
+3. `next.config.ts` `transpilePackages` lists every `@disco/*` package.
+4. Remove the now-unused `~/*` alias targets; keep the alias for app-internal imports.
+5. Delete `tsconfig.tsbuildinfo`, stale `.next/`, and `README.md` references to the
+   old single-package scripts. Update `README.md` for the pnpm/turbo workflow.
+
+**Gate:** `pnpm verify` green. `pnpm boundaries` green. Preview deploy green.
+
+### Phase 7 — Merge
+
+1. `/code-review` on the branch.
+2. Delete or relocate this file.
+3. Squash-free merge PR into `main`. Watch the first production deploy and the first
+   real Stripe webhook.
+
+---
+
+## Implementation log
+
+### Phase 0 — Scaffold and tooling ✅
+
+Starter tooling grafted, `@starter/*` → `@disco/*`, npm → pnpm 11.9.0, Tailwind 4.3.3.
+`pnpm boundaries` green.
+
+**Deviation:** the plan's gate said "the old app still builds via its own scripts."
+That was wrong — the root `package.json` can only be one thing, and Phase 0 replaces it
+with the workspace root. The app is unbuildable between Phase 0 and Phase 1 by
+construction. The two phases must land together.
+
+### Phase 1 — App moved to `apps/nextjs` ✅
+
+All 64 source files moved via `git mv` (recorded as renames, history preserved).
+`pnpm verify` green across all five gates. Build output confirms all 31 routes,
+middleware, and — critically — `/api/webhooks/stripe`, `/api/trpc/[trpc]` and
+`/api/blob/upload` at **identical paths**.
+
+**Four incompatibilities in the starter's tooling, found and fixed:**
+
+1. **`declaration: true` in the shared TS base breaks the app under pnpm.** It forces
+   TypeScript to name inferred types portably, which pnpm's nested `node_modules`
+   layout cannot satisfy — `createTRPCReact<AppRouter>()` failed to compile. The app
+   emits nothing (`noEmit: true`), so `tooling/typescript/tsconfig/next.json` now sets
+   `declaration: false`. Library packages keep it. **This will resurface in Phase 5**
+   if any feature package re-exports a tRPC router type.
+2. **The starter's `eslint/next.mjs` has no `react-hooks` plugin.** It wires only
+   `@next/eslint-plugin-next`, so `react-hooks/exhaustive-deps` — which this app's code
+   references — resolved to "rule not found". Added `eslint-plugin-react` and
+   `eslint-plugin-react-hooks`.
+3. **`js.configs.recommended` with no globals declared.** 15 `no-undef` errors on
+   `process` in `env.js`. Added `globals.node`/`browser`/`es2022` and turned `no-undef`
+   off for TypeScript, where the compiler already resolves identifiers.
+4. **Flat-config ordering.** The `disableTypeChecked` override for config files was
+   placed *before* the block setting `projectService: true`, so the later block
+   re-enabled type-aware parsing and every `.mjs` config failed to parse. The global
+   `languageOptions` block now comes first and the config-file override last.
+
+Also ported into the shared tooling so behaviour is unchanged from `main`:
+`recommendedTypeChecked` + `stylisticTypeChecked`, `consistent-type-imports`,
+`no-misused-promises`, the `drizzle/enforce-{delete,update}-with-where` rules
+(now also covering `tx`), `verbatimModuleSyntax`, and `prettier-plugin-tailwindcss`.
+
+**Outstanding — must be done in the Vercel dashboard, cannot be scripted:**
+
+- Root Directory → `apps/nextjs`
+- Install Command → `pnpm install --frozen-lockfile`
+- Build Command → `pnpm build`
+- Then confirm a preview deploy is green **before starting Phase 2**.
+
+`.vercel/repo.json` and `.github/workflows/ci.yml` are already updated in the repo.
+
+---
+
+## Test seams
+
+Pure logic, Vitest, no DB / Stripe / Resend. Written in Phase 4, before the code moves.
+
+| Seam | What it pins |
+|---|---|
+| `fulfilMerchPayment` | Branching on `metadata.type`; existing order → no-op (idempotency); `merchSizes.sold` increment equals quantity |
+| `fulfilTicketPayment` | Idempotency; missing event row → bail; `events.ticketsSold` increment; one ticket row per unit of quantity |
+| Ticket codes | `codes.length === quantity`, all unique |
+| Stock guard | `size.stock - size.sold < quantity` → `CONFLICT` |
+| Order guards | `quantity > item.maxPerOrder` → `BAD_REQUEST`; non-`available` status → `BAD_REQUEST` |
+| Totals | `totalInPence === item.priceInPence * quantity` |
+| Email payloads | Ticket and merch confirmation argument shape, including the `en-GB` date formatting with and without `event.day` |
+| Auth predicates | `requireAdmin` on `publicMetadata.role !== "admin"` → `FORBIDDEN`; missing `userId` → `UNAUTHORIZED` |
+
+---
+
+## Dead code
+
+- **`postRouter`** (`src/server/api/routers/post.ts`, 30 lines) — delete in Phase 5.
+- **`LatestPost`** (`src/app/_components/post.tsx`) — imported nowhere. Delete in Phase 5.
+- **The `posts` table** — **keep it in `schema.ts` for now.** There are no migrations;
+  the workflow is `db:push`, and removing the table from the schema would make the next
+  push *drop a live table*. Mark it deprecated in a comment and drop it in a separate,
+  deliberate PR after the refactor merges.
 
 ---
 
 ## Risks
 
-| Risk | Why it bites |
-|---|---|
-| **Vercel deploy config** | Install command, build command, and root directory all change when the app moves to `apps/*`. The `.vercel` directory here is already linked to a project. |
-| **CI rewrite** | `.github/workflows/ci.yml` is npm + single-package (`npm ci`, `npm run lint/typecheck/build`, `SKIP_ENV_VALIDATION=1`). Becomes pnpm + `turbo run`. The starter's `tooling/github` has conventions to copy. |
-| **No test safety net** | 7,480 lines moving with zero tests. The only regression check today is `pnpm build` passing and clicking through by hand. |
-| **Stripe webhook path** | `/api/webhooks/stripe` is registered in the live Stripe dashboard. If the route path changes, production payments silently stop confirming. |
-| **Live database** | Neon-hosted with real orders. The `disco-soulstice_` prefix and all column names must survive untouched. |
-| **Big-bang PR** | The whole app moves at once, so the PR is unavoidably large. Tracer-bullet tickets that keep `main` deployable at each step are worth the extra planning. |
+| Risk | Why it bites | Mitigation |
+|---|---|---|
+| **Vercel deploy config** | Root directory, install command and build command all change. `.vercel/repo.json` pins `"directory": "."`. | Verified by the Phase 1 gate, before any code restructuring compounds on it. |
+| **Stripe webhook path** | `/api/webhooks/stripe` is registered in the live Stripe dashboard. A changed path means production payments silently stop confirming. | Explicit Phase 1 check; Phase 4 gate replays a real event via the Stripe CLI. |
+| **Live database** | Real orders. The `disco-soulstice_` prefix and every column name must survive untouched. | Schema moves byte-identical in Phase 2. No `db:push` runs during the refactor. |
+| **`@t3-oss/env-nextjs` in a package** | `NEXT_PUBLIC_*` vars are inlined at build time. Reading them from inside a workspace package only works if the package is in `transpilePackages`. | Every `@disco/*` package goes in `transpilePackages` (Phase 6), but check the client vars resolve as soon as `@disco/env` exists (Phase 2). |
+| **Tailwind cross-package content** | Tailwind 4 does not scan workspace dependencies — they resolve through `node_modules`, which it excludes. Classes in `@disco/ui` silently produce no CSS and the build still passes. | `@source` directives added in Phase 2, before any component moves into a package. |
+| **Tailwind 4.0 → 4.3 bump** | Three minor versions of a young major. Utility output can shift subtly; this app leans on a hand-rolled `@theme inline` token block in `globals.css`. | Bumped alone in Phase 0, with nothing else changing, so a visual diff is attributable. |
+| **Type-checked ESLint across a workspace** | `projectService` behaves differently per-package than in a single-package repo; the drizzle plugin rules need `ctx.db` still recognised. | Proven in Phase 0 on the empty workspace, when nothing else can be blamed. |
+| **Lazy Stripe/Resend regression** | Eager module-level clients break `next build`. Easy to "clean up" the `Proxy` while porting. | Called out at the seam. The `Proxy` moves verbatim. |
+| **Big-bang PR** | The whole app moves at once. | Phase gates keep every commit deployable, so the PR is large but bisectable. |
 
 ---
 
 ## Reference
 
 **Current stack:** Next.js 15.2.3 (App Router), React 19, TypeScript 5.8, tRPC 11,
-Drizzle 0.41 / Postgres (Neon), Tailwind 4, Clerk 7, Stripe 20, Resend 6, Vercel Blob 2.
-Path alias `~/*` → `./src/*`.
+Drizzle 0.41 / Postgres (Vercel), Tailwind 4.3, Clerk 7, Stripe 20, Resend 6,
+Vercel Blob 2. Path alias `~/*` → `./src/*`.
 
-**Starter layout:**
+**What moves:** 64 files, 7,546 lines. Routers 847 · schema 315 · tRPC infra 125 ·
+email 115 · 31 route files · 6 shared components · 3 API routes · 14 env vars.
 
-```txt
-apps/nextjs/
-packages/foundations/   auth billing db trpc ui validators env-schema query-client
-packages/services/      chat            <- leftover, delete
-packages/features/      conversations   <- leftover, delete
-packages/compositions/  admin           <- leftover, delete
-tooling/                eslint prettier tailwind typescript vitest github
-scripts/check-layer-boundaries.mjs
-```
-
-**Starter scripts:** `pnpm dev` · `build` · `lint` · `test` · `typecheck` · `boundaries` ·
-`verify` (= lint + boundaries + test + typecheck + build, the local CI gate).
+**Starter scripts:** `pnpm dev` · `build` · `lint` · `test` · `typecheck` ·
+`boundaries` · `verify` (= lint + boundaries + test + typecheck + build).
 
 **Local paths:** this repo `~/Projects/disco-soulstice` · starter `~/Projects/turborepo-starter`.
+
+---
+
+## Optional: run this through the planning skills
+
+**`/wayfinder` is skipped.** Its job is to resolve the decision map, and the map is
+resolved — see [Resolved decisions](#resolved-decisions). This file *is* the wayfinder
+output.
+
+The plan above is implementable as-is. If you'd rather drive it through the rest of the
+Matt Pocock skill chain, those skills are user-invocation only — type them yourself:
+
+| # | Command | Purpose |
+|---|---------|---------|
+| 0 | `/setup-matt-pocock-skills` | Writes `CLAUDE.md` + `docs/agents/`. Answers: GitHub tracker (`MurrayMint7/disco-soulstice`) · default triage labels · single-context domain docs · create `CLAUDE.md`. |
+| 1 | `/to-spec` | Synthesise this file into a spec on GitHub Issues. |
+| 2 | `/to-tickets` | Break the spec into tickets, one per phase, with blocking edges. |
+| 3 | `/implement` | Execute, TDD at the seams listed above. |
+| 4 | `/code-review` | Review the branch before the PR merges. |

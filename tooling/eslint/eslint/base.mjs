@@ -1,4 +1,5 @@
 import js from "@eslint/js";
+import globals from "globals";
 import tseslint from "typescript-eslint";
 // @ts-expect-error -- no types published for this plugin
 import drizzle from "eslint-plugin-drizzle";
@@ -16,6 +17,22 @@ export default [
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
+  {
+    linterOptions: {
+      reportUnusedDisableDirectives: true,
+    },
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+        ...globals.es2022,
+      },
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: process.cwd(),
+      },
+    },
+  },
   {
     files: ["**/*.ts", "**/*.tsx"],
     plugins: { drizzle },
@@ -35,6 +52,8 @@ export default [
         "error",
         { checksVoidReturn: { attributes: false } },
       ],
+      // TypeScript already resolves identifiers; `no-undef` only false-positives here.
+      "no-undef": "off",
       "drizzle/enforce-delete-with-where": [
         "error",
         { drizzleObjectName: ["db", "ctx.db", "tx"] },
@@ -46,14 +65,14 @@ export default [
     },
   },
   {
-    linterOptions: {
-      reportUnusedDisableDirectives: true,
-    },
+    // Config files sit outside every package's tsconfig `include`, so the
+    // project service cannot type them. Lint them without type information.
+    files: ["**/*.mjs", "**/*.cjs", "**/*.js"],
+    ...tseslint.configs.disableTypeChecked,
     languageOptions: {
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: process.cwd(),
-      },
+      ...tseslint.configs.disableTypeChecked.languageOptions,
+      globals: { ...globals.node, ...globals.browser, ...globals.es2022 },
+      parserOptions: { projectService: false, project: false },
     },
   },
 ];

@@ -16,6 +16,8 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "declaration": false,
+    "declarationMap": false
   }
 }

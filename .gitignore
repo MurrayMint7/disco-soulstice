@@ -6,7 +6,7 @@ node_modules/
 .pnp.js
 
 # testing
-/coverage
+coverage/
 
 # database
 /prisma/db.sqlite
@@ -14,12 +14,12 @@ node_modules/
 db.sqlite
 
 # next.js
-/.next/
-/out/
+.next/
+out/
 next-env.d.ts
 
 # production
-/build
+build/
 
 # misc
 .DS_Store
@@ -48,3 +48,6 @@ yarn-error.log*
 
 # turborepo
 .turbo/
+
+# ...but the example file is meant to be committed
+!.env.example
