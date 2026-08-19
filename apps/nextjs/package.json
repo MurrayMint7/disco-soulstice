@@ -23,9 +23,11 @@
     "@disco/db": "workspace:*",
     "@disco/email": "workspace:*",
     "@disco/env": "workspace:*",
+    "@disco/merch-service": "workspace:*",
     "@disco/payments": "workspace:*",
     "@disco/query-client": "workspace:*",
     "@disco/storage": "workspace:*",
+    "@disco/ticketing-service": "workspace:*",
     "@disco/trpc": "workspace:*",
     "@disco/validators": "workspace:*",
     "@stripe/react-stripe-js": "^5.6.1",
@@ -42,7 +44,6 @@
     "react-dom": "^19.0.0",
     "server-only": "^0.0.1",
     "superjson": "^2.2.1",
-    "uuid": "^13.0.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -54,7 +55,6 @@
     "@types/node": "^24.0.4",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@types/uuid": "^10.0.0",
     "drizzle-kit": "^0.31.9",
     "eslint": "^9.29.0",
     "tailwindcss": "^4.3.3",

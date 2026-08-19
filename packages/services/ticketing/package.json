@@ -1,0 +1,28 @@
+{
+  "name": "@disco/ticketing-service",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@disco/db": "workspace:*",
+    "@disco/email": "workspace:*",
+    "drizzle-orm": "^0.41.0",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@disco/eslint-config": "workspace:*",
+    "@disco/typescript-config": "workspace:*",
+    "@disco/vitest-config": "workspace:*",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^9.29.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

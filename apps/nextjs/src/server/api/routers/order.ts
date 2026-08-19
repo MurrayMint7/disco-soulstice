@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 
 import { getUserProfile } from "@disco/auth";
 import { createPaymentIntent } from "@disco/payments";
+import { checkTicketPurchase } from "@disco/ticketing-service";
 import { createTRPCRouter, authedProcedure } from "@disco/trpc";
 import { orders, events, tickets } from "@disco/db/schema";
 import {
@@ -31,30 +32,11 @@ export const orderRouter = createTRPCRouter({
             code: "NOT_FOUND",
             message: "Event not found",
           });
-        if (event.status !== "on-sale")
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Event is not on sale",
-          });
-        if (!event.priceInPence || !event.totalTickets)
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Event has no ticket price",
-          });
-        if (input.quantity > event.maxPerOrder)
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Maximum ${event.maxPerOrder} tickets per order`,
-          });
 
-        const remaining = event.totalTickets - event.ticketsSold;
-        if (remaining < input.quantity)
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "Not enough tickets available",
-          });
+        const check = checkTicketPurchase(event, input.quantity);
+        if (!check.ok) throw new TRPCError(check.problem);
 
-        const totalInPence = event.priceInPence * input.quantity;
+        const totalInPence = check.totalInPence;
 
         const paymentIntent = await createPaymentIntent({
           amountInPence: totalInPence,

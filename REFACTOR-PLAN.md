@@ -7,7 +7,8 @@ with **identical functionality** — auth, billing, email, uploads, admin, all o
 - **Branch:** `refactor/turborepo-monorepo` (off `origin/main` @ `369c535`)
 - **Merge path:** single PR into `main` when the refactor is complete
 - **Starter baseline:** `turborepo-starter` `main` @ `ab12a85`
-- **Status:** Phases 0–3 complete (`pnpm verify` green). Phase 4 is next.
+- **Status:** Phases 0–4 complete (`pnpm verify` green). Phase 5 is next.
+  One manual gate is outstanding — see [Phase 4](#phase-4--services-tests-first-).
   See [Implementation log](#implementation-log).
 
 > Delete this file before merging the PR, or fold it into `docs/`. It is *not*
@@ -494,9 +495,90 @@ across all five gates; the build emits the same 31 routes, and `/api/webhooks/st
   class. This becomes real only if `@disco/ui` is created.
 
 
+### Phase 4 — Services ✅ (one manual gate outstanding)
+
+`@disco/ticketing-service` and `@disco/merch-service`. **27 tests, no database, no
+network.** `pnpm verify` green; the build emits the same routes.
+
+The webhook route went from 140 lines of inline transaction work to 50 lines that
+verify a signature, branch on `metadata.type`, and delegate:
+
+```ts
+await db.transaction(async (tx) => {
+  await fulfilTicketPayment(payment, {
+    store: createDrizzleTicketStore(tx),
+    sendConfirmation: sendTicketConfirmation,
+  });
+});
+```
+
+**The deps shape changed, and it is the reason the tests are cheap.** The plan said
+both services "take their DB transaction and email sender as injected `deps`". Injecting
+a raw Drizzle transaction would have meant faking Drizzle's fluent builder in every test —
+`select().from().where().for("update")` — which tests the mock, not the fulfilment. So
+each service declares a **narrow store port** instead: five methods for tickets, four for
+merch, each named for the thing it does (`findOrderIdByPaymentIntent`, `lockEvent`,
+`incrementTicketsSold`). `createDrizzleTicketStore(tx)` / `createDrizzleMerchStore(tx)`
+are the only implementations that ship, and they still run inside the caller's
+transaction, so the atomicity is unchanged. The email sender is injected as the plan said.
+
+**Three further deviations:**
+
+1. **The guards return a problem; they do not throw.** A service that throws `TRPCError`
+   drags tRPC into the service layer, and every call site then needs a try/catch. Each
+   guard returns `{ code, message } | null` — deliberately `TRPCError`'s constructor
+   argument — so a router reads `if (problem) throw new TRPCError(problem)`. No error
+   classes, no mapping layer, and the messages are pinned by tests.
+
+2. **`checkTicketPurchase` returns the order total on success.** Returning a bare
+   problem forced `event.priceInPence!` at the call site, re-introducing an assertion the
+   original code did not need (it narrowed through the inline `if`). The check now returns
+   `{ ok: true, totalInPence }`, computed at the one point where the nullable price has
+   been proven present, so the `!` is gone. Merch needs no equivalent — `priceInPence` is
+   `notNull` on `merchItems`.
+
+3. **The plan put the capacity guard in `event.ts`. It is in `order.ts`** —
+   `orderRouter.createCheckoutSession`, alongside the status, price and per-order checks.
+   `event.ts` never had one. All four moved together.
+
+**Also:**
+
+- **`fulfil*Payment` returns a result** (`already-fulfilled` / `event-missing` /
+  `fulfilled`) where the inline code used bare `return`. The webhook ignores it; the tests
+  assert on it. No behavioural change.
+- **The `!` assertions on Stripe metadata moved verbatim** into
+  `parse*PaymentMetadata`. They are load-bearing under `noUncheckedIndexedAccess`, and
+  every field is written by our own `createCheckoutSession`. Softening them to `?? ""`
+  would insert empty strings where the original would have failed loudly.
+- **`uuid` and `@types/uuid` left `apps/nextjs`** for `@disco/ticketing-service`.
+  `generateTicketCodes(quantity, generate = uuidv4)` takes the generator as an optional
+  argument so the fulfilment tests get deterministic codes; production never passes it.
+- **`formatEventDate` is pinned with and without `event.day`** — `"Saturday, 21 June 2026"`
+  vs `"21 June 2026"` — which was the fiddliest thing to get right in the confirmation
+  email payload.
+
+**Outstanding manual gate — the Stripe CLI replay.** Not run. It writes to the live
+database and sends a real confirmation email, so it needs a person's say-so, not an
+agent's:
+
+```sh
+pnpm --filter @disco/nextjs dev
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+stripe trigger payment_intent.succeeded
+```
+
+Note that a bare `stripe trigger` sends **no `metadata`**, so it lands in the ticket
+branch with `eventId: NaN`, finds no event row, and bails — which exercises the signature
+check and the `event-missing` path but not fulfilment. To exercise fulfilment properly,
+drive a real test-mode checkout through the UI, or replay a captured event with
+`stripe events resend <id>`. The row and email should be identical to `main`'s.
+
+
 ## Test seams
 
-Pure logic, Vitest, no DB / Stripe / Resend. Written in Phase 4, before the code moves.
+Pure logic, Vitest, no DB / Stripe / Resend. **All eight are covered as of Phase 4** — 27
+tests in the two services plus 3 in `@disco/auth`. The auth predicates landed early, in
+Phase 3, with the code they pin.
 
 | Seam | What it pins |
 |---|---|

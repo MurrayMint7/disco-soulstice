@@ -1,17 +1,16 @@
 import { headers } from "next/headers";
-import { constructWebhookEvent } from "@disco/payments";
+
 import { db } from "@disco/db";
-import {
-  orders,
-  events,
-  tickets,
-  merchOrders,
-  merchSizes,
-  merchItems,
-} from "@disco/db/schema";
-import { eq, sql } from "drizzle-orm";
 import { sendMerchConfirmation, sendTicketConfirmation } from "@disco/email";
-import { v4 as uuidv4 } from "uuid";
+import {
+  createDrizzleMerchStore,
+  fulfilMerchPayment,
+} from "@disco/merch-service";
+import { constructWebhookEvent } from "@disco/payments";
+import {
+  createDrizzleTicketStore,
+  fulfilTicketPayment,
+} from "@disco/ticketing-service";
 
 export const dynamic = "force-dynamic";
 
@@ -31,128 +30,23 @@ export async function POST(req: Request) {
 
   if (event.type === "payment_intent.succeeded") {
     const paymentIntent = event.data.object;
-    const meta = paymentIntent.metadata;
+    const payment = {
+      paymentIntentId: paymentIntent.id,
+      metadata: paymentIntent.metadata,
+    };
 
-    if (meta.type === "merch") {
+    if (paymentIntent.metadata.type === "merch") {
       await db.transaction(async (tx) => {
-        // Check if order already exists (idempotency)
-        const [existing] = await tx
-          .select({ id: merchOrders.id })
-          .from(merchOrders)
-          .where(eq(merchOrders.stripePaymentIntentId, paymentIntent.id));
-
-        if (existing) return;
-
-        const [order] = await tx
-          .insert(merchOrders)
-          .values({
-            clerkUserId: meta.clerkUserId!,
-            merchItemId: Number(meta.merchItemId),
-            merchSizeId: Number(meta.merchSizeId),
-            size: meta.size!,
-            quantity: Number(meta.quantity),
-            totalInPence: Number(meta.totalInPence),
-            status: "completed",
-            stripePaymentIntentId: paymentIntent.id,
-            buyerEmail: meta.buyerEmail!,
-            buyerName: meta.buyerName!,
-          })
-          .returning();
-
-        await tx
-          .update(merchSizes)
-          .set({
-            sold: sql`${merchSizes.sold} + ${Number(meta.quantity)}`,
-          })
-          .where(eq(merchSizes.id, Number(meta.merchSizeId)));
-
-        const [item] = await tx
-          .select()
-          .from(merchItems)
-          .where(eq(merchItems.id, Number(meta.merchItemId)));
-
-        await sendMerchConfirmation({
-          buyerEmail: meta.buyerEmail!,
-          buyerName: meta.buyerName!,
-          itemTitle: item?.title ?? "Merch Item",
-          size: meta.size!,
-          quantity: Number(meta.quantity),
-          totalInPence: Number(meta.totalInPence),
-          orderId: order!.id,
+        await fulfilMerchPayment(payment, {
+          store: createDrizzleMerchStore(tx),
+          sendConfirmation: sendMerchConfirmation,
         });
       });
     } else {
       await db.transaction(async (tx) => {
-        // Check if order already exists (idempotency)
-        const [existing] = await tx
-          .select({ id: orders.id })
-          .from(orders)
-          .where(eq(orders.stripePaymentIntentId, paymentIntent.id));
-
-        if (existing) return;
-
-        const eventId = Number(meta.eventId);
-        const quantity = Number(meta.quantity);
-        const totalInPence = Number(meta.totalInPence);
-
-        const [eventRow] = await tx
-          .select()
-          .from(events)
-          .where(eq(events.id, eventId))
-          .for("update");
-
-        if (!eventRow) return;
-
-        const [order] = await tx
-          .insert(orders)
-          .values({
-            clerkUserId: meta.clerkUserId!,
-            eventId,
-            quantity,
-            totalInPence,
-            status: "completed",
-            stripePaymentIntentId: paymentIntent.id,
-            buyerEmail: meta.buyerEmail!,
-            buyerName: meta.buyerName!,
-          })
-          .returning();
-
-        await tx
-          .update(events)
-          .set({
-            ticketsSold: sql`${events.ticketsSold} + ${quantity}`,
-          })
-          .where(eq(events.id, eventId));
-
-        const ticketCodes = Array.from({ length: quantity }, () =>
-          uuidv4(),
-        );
-        await tx.insert(tickets).values(
-          ticketCodes.map((code) => ({
-            orderId: order!.id,
-            eventId,
-            ticketCode: code,
-          })),
-        );
-
-        await sendTicketConfirmation({
-          buyerEmail: meta.buyerEmail!,
-          buyerName: meta.buyerName!,
-          eventTitle: eventRow.title,
-          eventDate: eventRow.day
-            ? `${eventRow.day}, ${new Date(eventRow.date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
-            : new Date(eventRow.date).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              }),
-          eventTime: eventRow.time,
-          eventVenue: eventRow.venue,
-          eventLocation: eventRow.location,
-          orderId: order!.id,
-          quantity,
-          totalInPence,
-          ticketCodes,
+        await fulfilTicketPayment(payment, {
+          store: createDrizzleTicketStore(tx),
+          sendConfirmation: sendTicketConfirmation,
         });
       });
     }

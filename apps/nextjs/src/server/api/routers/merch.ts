@@ -2,6 +2,11 @@ import { eq, and, desc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 import { getUserProfile } from "@disco/auth";
+import {
+  calculateMerchTotal,
+  checkMerchItemPurchase,
+  checkMerchStock,
+} from "@disco/merch-service";
 import { createPaymentIntent } from "@disco/payments";
 import { deleteBlob } from "@disco/storage";
 import {
@@ -65,16 +70,9 @@ export const merchRouter = createTRPCRouter({
 
         if (!item)
           throw new TRPCError({ code: "NOT_FOUND", message: "Item not found" });
-        if (item.status !== "available")
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Item is not available for purchase",
-          });
-        if (input.quantity > item.maxPerOrder)
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Maximum ${item.maxPerOrder} per order`,
-          });
+
+        const itemProblem = checkMerchItemPurchase(item, input.quantity);
+        if (itemProblem) throw new TRPCError(itemProblem);
 
         const [size] = await tx
           .select()
@@ -90,14 +88,13 @@ export const merchRouter = createTRPCRouter({
         if (!size)
           throw new TRPCError({ code: "NOT_FOUND", message: "Size not found" });
 
-        const available = size.stock - size.sold;
-        if (available < input.quantity)
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: "Not enough stock available",
-          });
+        const stockProblem = checkMerchStock(size, input.quantity);
+        if (stockProblem) throw new TRPCError(stockProblem);
 
-        const totalInPence = item.priceInPence * input.quantity;
+        const totalInPence = calculateMerchTotal(
+          item.priceInPence,
+          input.quantity,
+        );
 
         const paymentIntent = await createPaymentIntent({
           amountInPence: totalInPence,

@@ -53,6 +53,9 @@ importers:
       '@disco/env':
         specifier: workspace:*
         version: link:../../packages/foundations/env
+      '@disco/merch-service':
+        specifier: workspace:*
+        version: link:../../packages/services/merch
       '@disco/payments':
         specifier: workspace:*
         version: link:../../packages/foundations/payments
@@ -62,6 +65,9 @@ importers:
       '@disco/storage':
         specifier: workspace:*
         version: link:../../packages/foundations/storage
+      '@disco/ticketing-service':
+        specifier: workspace:*
+        version: link:../../packages/services/ticketing
       '@disco/trpc':
         specifier: workspace:*
         version: link:../../packages/foundations/trpc
@@ -110,9 +116,6 @@ importers:
       superjson:
         specifier: ^2.2.1
         version: 2.2.6
-      uuid:
-        specifier: ^13.0.0
-        version: 13.0.2
       zod:
         specifier: ^3.24.2
         version: 3.25.76
@@ -141,9 +144,6 @@ importers:
       '@types/react-dom':
         specifier: ^19.0.0
         version: 19.2.4(@types/react@19.2.18)
-      '@types/uuid':
-        specifier: ^10.0.0
-        version: 10.0.0
       drizzle-kit:
         specifier: ^0.31.9
         version: 0.31.10
@@ -420,6 +420,74 @@ importers:
       '@disco/vitest-config':
         specifier: workspace:*
         version: link:../../../tooling/vitest
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/services/merch:
+    dependencies:
+      '@disco/db':
+        specifier: workspace:*
+        version: link:../../foundations/db
+      '@disco/email':
+        specifier: workspace:*
+        version: link:../../foundations/email
+      drizzle-orm:
+        specifier: ^0.41.0
+        version: 0.41.0(postgres@3.4.9)
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/services/ticketing:
+    dependencies:
+      '@disco/db':
+        specifier: workspace:*
+        version: link:../../foundations/db
+      '@disco/email':
+        specifier: workspace:*
+        version: link:../../foundations/email
+      drizzle-orm:
+        specifier: ^0.41.0
+        version: 0.41.0(postgres@3.4.9)
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.2
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      '@types/uuid':
+        specifier: ^10.0.0
+        version: 10.0.0
       eslint:
         specifier: ^9.29.0
         version: 9.39.5(jiti@2.7.0)
