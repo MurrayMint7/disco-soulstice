@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { uploadImageFile } from "~/lib/upload-image";
+import { uploadImageFile } from "@disco/storage/client";
 
 export function ImageUpload({
   label = "Image",

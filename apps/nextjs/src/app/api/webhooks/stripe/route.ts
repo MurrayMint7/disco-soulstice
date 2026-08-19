@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { stripe } from "~/server/stripe";
+import { constructWebhookEvent } from "@disco/payments";
 import { db } from "@disco/db";
 import {
   orders,
@@ -10,10 +10,8 @@ import {
   merchItems,
 } from "@disco/db/schema";
 import { eq, sql } from "drizzle-orm";
-import { sendTicketConfirmation } from "~/server/email/send-ticket-confirmation";
-import { sendMerchConfirmation } from "~/server/email/send-merch-confirmation";
+import { sendMerchConfirmation, sendTicketConfirmation } from "@disco/email";
 import { v4 as uuidv4 } from "uuid";
-import { env } from "@disco/env";
 
 export const dynamic = "force-dynamic";
 
@@ -26,11 +24,7 @@ export async function POST(req: Request) {
 
   let event;
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      env.STRIPE_WEBHOOK_SECRET,
-    );
+    event = constructWebhookEvent(body, signature);
   } catch {
     return new Response("Invalid signature", { status: 400 });
   }

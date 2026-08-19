@@ -1,6 +1,11 @@
 import { Resend } from "resend";
 import { env } from "@disco/env";
 
+/**
+ * Lazy behind a `Proxy` for the same reason as the Stripe client: an eager
+ * module-level `new Resend(env.RESEND_API_KEY)` reads the env at import time and
+ * breaks `next build` — see 233c125.
+ */
 let _resend: Resend | undefined;
 
 function getResend() {

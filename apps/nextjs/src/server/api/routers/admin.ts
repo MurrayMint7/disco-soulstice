@@ -1,8 +1,8 @@
-import { z } from "zod";
 import { eq, sql, desc } from "drizzle-orm";
 
-import { createTRPCRouter, adminProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, adminProcedure } from "@disco/trpc";
 import { orders, events, tickets } from "@disco/db/schema";
+import { adminEventSalesSchema, adminOrdersFilterSchema } from "@disco/validators";
 
 export const adminRouter = createTRPCRouter({
   getStats: adminProcedure.query(async ({ ctx }) => {
@@ -28,7 +28,7 @@ export const adminRouter = createTRPCRouter({
   }),
 
   getOrders: adminProcedure
-    .input(z.object({ eventId: z.number().optional() }))
+    .input(adminOrdersFilterSchema)
     .query(async ({ ctx, input }) => {
       return ctx.db
         .select()
@@ -39,7 +39,7 @@ export const adminRouter = createTRPCRouter({
     }),
 
   getEventSales: adminProcedure
-    .input(z.object({ eventId: z.number() }))
+    .input(adminEventSalesSchema)
     .query(async ({ ctx, input }) => {
       const [event] = await ctx.db
         .select()

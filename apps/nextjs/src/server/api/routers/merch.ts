@@ -1,17 +1,29 @@
-import { z } from "zod";
 import { eq, and, desc } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { clerkClient } from "@clerk/nextjs/server";
-import { del } from "@vercel/blob";
 
+import { getUserProfile } from "@disco/auth";
+import { createPaymentIntent } from "@disco/payments";
+import { deleteBlob } from "@disco/storage";
 import {
   createTRPCRouter,
   publicProcedure,
   authedProcedure,
   adminProcedure,
-} from "~/server/api/trpc";
+} from "@disco/trpc";
 import { merchItems, merchSizes, merchOrders } from "@disco/db/schema";
-import { stripe } from "~/server/stripe";
+import {
+  merchCheckoutSchema,
+  merchItemByIdSchema,
+  merchItemBySlugSchema,
+  merchItemCreateSchema,
+  merchItemUpdateSchema,
+  merchOrdersFilterSchema,
+  merchSizeByIdSchema,
+  merchSizeCreateSchema,
+  merchSizeUpdateSchema,
+  orderByIdSchema,
+  orderByPaymentIntentSchema,
+} from "@disco/validators";
 
 export const merchRouter = createTRPCRouter({
   // ── Public ──────────────────────────────────────────────────────────
@@ -25,7 +37,7 @@ export const merchRouter = createTRPCRouter({
   }),
 
   getBySlug: publicProcedure
-    .input(z.object({ slug: z.string() }))
+    .input(merchItemBySlugSchema)
     .query(async ({ ctx, input }) => {
       const item = await ctx.db.query.merchItems.findFirst({
         where: eq(merchItems.slug, input.slug),
@@ -38,19 +50,11 @@ export const merchRouter = createTRPCRouter({
   // ── Authed ──────────────────────────────────────────────────────────
 
   createCheckoutSession: authedProcedure
-    .input(
-      z.object({
-        merchItemId: z.number(),
-        merchSizeId: z.number(),
-        quantity: z.number().int().min(1),
-      }),
-    )
+    .input(merchCheckoutSchema)
     .mutation(async ({ ctx, input }) => {
-      const client = await clerkClient();
-      const user = await client.users.getUser(ctx.userId);
-      const buyerEmail = user.emailAddresses[0]?.emailAddress ?? "";
-      const buyerName =
-        `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
+      const { email: buyerEmail, name: buyerName } = await getUserProfile(
+        ctx.userId,
+      );
 
       return ctx.db.transaction(async (tx) => {
         const [item] = await tx
@@ -95,9 +99,8 @@ export const merchRouter = createTRPCRouter({
 
         const totalInPence = item.priceInPence * input.quantity;
 
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: totalInPence,
-          currency: "gbp",
+        const paymentIntent = await createPaymentIntent({
+          amountInPence: totalInPence,
           metadata: {
             type: "merch",
             merchItemId: item.id.toString(),
@@ -127,7 +130,7 @@ export const merchRouter = createTRPCRouter({
   }),
 
   getMerchOrderById: authedProcedure
-    .input(z.object({ orderId: z.number() }))
+    .input(orderByIdSchema)
     .query(async ({ ctx, input }) => {
       const [row] = await ctx.db
         .select()
@@ -145,7 +148,7 @@ export const merchRouter = createTRPCRouter({
     }),
 
   getMerchOrderByPaymentIntent: authedProcedure
-    .input(z.object({ paymentIntentId: z.string() }))
+    .input(orderByPaymentIntentSchema)
     .query(async ({ ctx, input }) => {
       const [row] = await ctx.db
         .select()
@@ -165,7 +168,7 @@ export const merchRouter = createTRPCRouter({
   // ── Admin ───────────────────────────────────────────────────────────
 
   getById: adminProcedure
-    .input(z.object({ id: z.number() }))
+    .input(merchItemByIdSchema)
     .query(async ({ ctx, input }) => {
       const item = await ctx.db.query.merchItems.findFirst({
         where: eq(merchItems.id, input.id),
@@ -176,24 +179,7 @@ export const merchRouter = createTRPCRouter({
     }),
 
   create: adminProcedure
-    .input(
-      z.object({
-        title: z.string().min(1),
-        slug: z.string().min(1),
-        description: z.string().optional(),
-        image: z.string().min(1),
-        imagePathname: z.string().optional(),
-        priceInPence: z.number().int().min(0),
-        status: z.enum(["available", "coming-soon", "sold-out", "discontinued"]),
-        maxPerOrder: z.number().int().min(1).optional(),
-        sizes: z.array(
-          z.object({
-            size: z.string().min(1),
-            stock: z.number().int().min(0),
-          }),
-        ),
-      }),
-    )
+    .input(merchItemCreateSchema)
     .mutation(async ({ ctx, input }) => {
       const { sizes, ...itemData } = input;
       return ctx.db.transaction(async (tx) => {
@@ -220,21 +206,7 @@ export const merchRouter = createTRPCRouter({
     }),
 
   update: adminProcedure
-    .input(
-      z.object({
-        id: z.number(),
-        title: z.string().min(1).optional(),
-        slug: z.string().min(1).optional(),
-        description: z.string().optional(),
-        image: z.string().min(1).optional(),
-        imagePathname: z.string().optional(),
-        priceInPence: z.number().int().min(0).optional(),
-        status: z
-          .enum(["available", "coming-soon", "sold-out", "discontinued"])
-          .optional(),
-        maxPerOrder: z.number().int().min(1).optional(),
-      }),
-    )
+    .input(merchItemUpdateSchema)
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
 
@@ -249,7 +221,7 @@ export const merchRouter = createTRPCRouter({
           existing?.imagePathname &&
           existing.imagePathname !== data.imagePathname
         ) {
-          await del(existing.imagePathname);
+          await deleteBlob(existing.imagePathname);
         }
       }
 
@@ -262,13 +234,7 @@ export const merchRouter = createTRPCRouter({
     }),
 
   addSize: adminProcedure
-    .input(
-      z.object({
-        merchItemId: z.number(),
-        size: z.string().min(1),
-        stock: z.number().int().min(0),
-      }),
-    )
+    .input(merchSizeCreateSchema)
     .mutation(async ({ ctx, input }) => {
       const [size] = await ctx.db
         .insert(merchSizes)
@@ -278,13 +244,7 @@ export const merchRouter = createTRPCRouter({
     }),
 
   updateSize: adminProcedure
-    .input(
-      z.object({
-        sizeId: z.number(),
-        size: z.string().min(1).optional(),
-        stock: z.number().int().min(0).optional(),
-      }),
-    )
+    .input(merchSizeUpdateSchema)
     .mutation(async ({ ctx, input }) => {
       const { sizeId, ...data } = input;
       const [updated] = await ctx.db
@@ -296,7 +256,7 @@ export const merchRouter = createTRPCRouter({
     }),
 
   deleteSize: adminProcedure
-    .input(z.object({ sizeId: z.number() }))
+    .input(merchSizeByIdSchema)
     .mutation(async ({ ctx, input }) => {
       const [existing] = await ctx.db
         .select({ id: merchOrders.id })
@@ -323,7 +283,7 @@ export const merchRouter = createTRPCRouter({
     }),
 
   delete: adminProcedure
-    .input(z.object({ id: z.number() }))
+    .input(merchItemByIdSchema)
     .mutation(async ({ ctx, input }) => {
       const [existing] = await ctx.db
         .select({ id: merchOrders.id })
@@ -358,12 +318,12 @@ export const merchRouter = createTRPCRouter({
       });
 
       if (item?.imagePathname) {
-        await del(item.imagePathname);
+        await deleteBlob(item.imagePathname);
       }
     }),
 
   adminGetOrders: adminProcedure
-    .input(z.object({ merchItemId: z.number().optional() }).optional())
+    .input(merchOrdersFilterSchema)
     .query(async ({ ctx, input }) => {
       const query = ctx.db
         .select()

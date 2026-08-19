@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, publicProcedure } from "@disco/trpc";
 import { posts } from "@disco/db/schema";
 
 export const postRouter = createTRPCRouter({

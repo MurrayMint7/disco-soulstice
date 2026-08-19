@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth, SignInButton, UserButton } from "@clerk/nextjs";
+import { useAuth, SignInButton, UserButton } from "@disco/auth/react";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

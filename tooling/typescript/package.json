@@ -4,6 +4,7 @@
   "type": "module",
   "exports": {
     "./base.json": "./tsconfig/base.json",
+    "./browser.json": "./tsconfig/browser.json",
     "./next.json": "./tsconfig/next.json",
     "./package.json": "./tsconfig/package.json"
   }

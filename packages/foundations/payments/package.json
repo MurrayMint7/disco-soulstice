@@ -1,0 +1,25 @@
+{
+  "name": "@disco/payments",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@disco/env": "workspace:*",
+    "stripe": "^20.4.1"
+  },
+  "devDependencies": {
+    "@disco/eslint-config": "workspace:*",
+    "@disco/typescript-config": "workspace:*",
+    "@disco/vitest-config": "workspace:*",
+    "eslint": "^9.29.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

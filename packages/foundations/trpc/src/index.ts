@@ -9,8 +9,12 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { auth, clerkClient } from "@clerk/nextjs/server";
 
+import {
+  AuthorizationError,
+  getCurrentUserId,
+  requireAdmin,
+} from "@disco/auth";
 import { db } from "@disco/db";
 
 /**
@@ -26,7 +30,7 @@ import { db } from "@disco/db";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const { userId } = await auth();
+  const userId = await getCurrentUserId();
   return {
     db,
     userId,
@@ -66,7 +70,7 @@ export const createCallerFactory = t.createCallerFactory;
  * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
  *
  * These are the pieces you use to build your tRPC API. You should import these a lot in the
- * "/src/server/api/routers" directory.
+ * `packages/features/*` packages.
  */
 
 /**
@@ -116,10 +120,13 @@ export const authedProcedure = publicProcedure.use(({ ctx, next }) => {
 });
 
 export const adminProcedure = authedProcedure.use(async ({ ctx, next }) => {
-  const client = await clerkClient();
-  const user = await client.users.getUser(ctx.userId);
-  if (user.publicMetadata?.role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN" });
+  try {
+    await requireAdmin(ctx.userId);
+  } catch (error) {
+    if (error instanceof AuthorizationError) {
+      throw new TRPCError({ code: error.code });
+    }
+    throw error;
   }
   return next({ ctx });
 });

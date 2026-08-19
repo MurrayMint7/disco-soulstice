@@ -11,7 +11,17 @@ const config: NextConfig = {
    * The `@disco/*` workspace packages are published as TypeScript source, so Next.js has to
    * compile them itself.
    */
-  transpilePackages: ["@disco/db", "@disco/env"],
+  transpilePackages: [
+    "@disco/auth",
+    "@disco/db",
+    "@disco/email",
+    "@disco/env",
+    "@disco/payments",
+    "@disco/query-client",
+    "@disco/storage",
+    "@disco/trpc",
+    "@disco/validators",
+  ],
   images: {
     remotePatterns: [
       {

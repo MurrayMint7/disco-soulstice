@@ -1,6 +1,6 @@
 import "~/styles/globals.css";
 import { Analytics } from "@vercel/analytics/next";
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkProvider } from "@disco/auth/react";
 
 import { type Metadata } from "next";
 import { Abril_Fatface, Inter } from "next/font/google";

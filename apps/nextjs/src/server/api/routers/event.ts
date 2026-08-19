@@ -1,14 +1,15 @@
-import { z } from "zod";
 import { eq, asc, desc, gte, lt } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { del } from "@vercel/blob";
 
-import {
-  createTRPCRouter,
-  publicProcedure,
-  adminProcedure,
-} from "~/server/api/trpc";
+import { createTRPCRouter, publicProcedure, adminProcedure } from "@disco/trpc";
 import { events, orders } from "@disco/db/schema";
+import { deleteBlob } from "@disco/storage";
+import {
+  eventByIdSchema,
+  eventBySlugSchema,
+  eventCreateSchema,
+  eventUpdateSchema,
+} from "@disco/validators";
 
 export const eventRouter = createTRPCRouter({
   list: publicProcedure.query(async ({ ctx }) => {
@@ -32,7 +33,7 @@ export const eventRouter = createTRPCRouter({
   }),
 
   getBySlug: publicProcedure
-    .input(z.object({ slug: z.string() }))
+    .input(eventBySlugSchema)
     .query(async ({ ctx, input }) => {
       const event = await ctx.db
         .select()
@@ -44,7 +45,7 @@ export const eventRouter = createTRPCRouter({
     }),
 
   getById: adminProcedure
-    .input(z.object({ id: z.number() }))
+    .input(eventByIdSchema)
     .query(async ({ ctx, input }) => {
       const event = await ctx.db
         .select()
@@ -56,51 +57,14 @@ export const eventRouter = createTRPCRouter({
     }),
 
   create: adminProcedure
-    .input(
-      z.object({
-        title: z.string(),
-        slug: z.string(),
-        date: z.date(),
-        day: z.string().optional(),
-        time: z.string(),
-        venue: z.string(),
-        location: z.string(),
-        description: z.string().optional(),
-        image: z.string().url(),
-        imagePathname: z.string().optional(),
-        status: z.enum(["on-sale", "coming-soon", "sold-out", "free-event"]),
-        priceInPence: z.number().int().positive().optional(),
-        totalTickets: z.number().int().positive().optional(),
-        maxPerOrder: z.number().int().positive().default(4),
-      }),
-    )
+    .input(eventCreateSchema)
     .mutation(async ({ ctx, input }) => {
       const [event] = await ctx.db.insert(events).values(input).returning();
       return event;
     }),
 
   update: adminProcedure
-    .input(
-      z.object({
-        id: z.number(),
-        title: z.string().optional(),
-        slug: z.string().optional(),
-        date: z.date().optional(),
-        day: z.string().optional(),
-        time: z.string().optional(),
-        venue: z.string().optional(),
-        location: z.string().optional(),
-        description: z.string().optional(),
-        image: z.string().url().optional(),
-        imagePathname: z.string().optional(),
-        status: z
-          .enum(["on-sale", "coming-soon", "sold-out", "free-event"])
-          .optional(),
-        priceInPence: z.number().int().positive().nullable().optional(),
-        totalTickets: z.number().int().positive().nullable().optional(),
-        maxPerOrder: z.number().int().positive().optional(),
-      }),
-    )
+    .input(eventUpdateSchema)
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
 
@@ -115,7 +79,7 @@ export const eventRouter = createTRPCRouter({
           existing?.imagePathname &&
           existing.imagePathname !== data.imagePathname
         ) {
-          await del(existing.imagePathname);
+          await deleteBlob(existing.imagePathname);
         }
       }
 
@@ -128,7 +92,7 @@ export const eventRouter = createTRPCRouter({
     }),
 
   delete: adminProcedure
-    .input(z.object({ id: z.number() }))
+    .input(eventByIdSchema)
     .mutation(async ({ ctx, input }) => {
       const [existing] = await ctx.db
         .select({ id: orders.id })
@@ -153,7 +117,7 @@ export const eventRouter = createTRPCRouter({
       await ctx.db.delete(events).where(eq(events.id, input.id));
 
       if (event?.imagePathname) {
-        await del(event.imagePathname);
+        await deleteBlob(event.imagePathname);
       }
     }),
 });

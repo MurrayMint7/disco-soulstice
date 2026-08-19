@@ -41,12 +41,33 @@ importers:
       '@clerk/nextjs':
         specifier: ^7.0.6
         version: 7.7.8(next@15.5.23(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@disco/auth':
+        specifier: workspace:*
+        version: link:../../packages/foundations/auth
       '@disco/db':
         specifier: workspace:*
         version: link:../../packages/foundations/db
+      '@disco/email':
+        specifier: workspace:*
+        version: link:../../packages/foundations/email
       '@disco/env':
         specifier: workspace:*
         version: link:../../packages/foundations/env
+      '@disco/payments':
+        specifier: workspace:*
+        version: link:../../packages/foundations/payments
+      '@disco/query-client':
+        specifier: workspace:*
+        version: link:../../packages/foundations/query-client
+      '@disco/storage':
+        specifier: workspace:*
+        version: link:../../packages/foundations/storage
+      '@disco/trpc':
+        specifier: workspace:*
+        version: link:../../packages/foundations/trpc
+      '@disco/validators':
+        specifier: workspace:*
+        version: link:../../packages/foundations/validators
       '@stripe/react-stripe-js':
         specifier: ^5.6.1
         version: 5.6.1(@stripe/stripe-js@8.11.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -77,24 +98,15 @@ importers:
       next:
         specifier: ^15.2.3
         version: 15.5.23(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      qrcode:
-        specifier: ^1.5.4
-        version: 1.5.4
       react:
         specifier: ^19.0.0
         version: 19.2.8
       react-dom:
         specifier: ^19.0.0
         version: 19.2.8(react@19.2.8)
-      resend:
-        specifier: ^6.9.4
-        version: 6.20.0
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
-      stripe:
-        specifier: ^20.4.1
-        version: 20.4.1(@types/node@24.13.3)
       superjson:
         specifier: ^2.2.1
         version: 2.2.6
@@ -123,9 +135,6 @@ importers:
       '@types/node':
         specifier: ^24.0.4
         version: 24.13.3
-      '@types/qrcode':
-        specifier: ^1.5.6
-        version: 1.5.6
       '@types/react':
         specifier: ^19.0.0
         version: 19.2.18
@@ -147,6 +156,37 @@ importers:
       tsx:
         specifier: ^4.23.0
         version: 4.23.12
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/foundations/auth:
+    dependencies:
+      '@clerk/nextjs':
+        specifier: ^7.0.6
+        version: 7.7.8(next@15.5.23(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.18
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.8
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
@@ -185,11 +225,188 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
 
+  packages/foundations/email:
+    dependencies:
+      '@disco/env':
+        specifier: workspace:*
+        version: link:../env
+      qrcode:
+        specifier: ^1.5.4
+        version: 1.5.4
+      resend:
+        specifier: ^6.9.4
+        version: 6.20.0
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      '@types/qrcode':
+        specifier: ^1.5.6
+        version: 1.5.6
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
   packages/foundations/env:
     dependencies:
       '@t3-oss/env-nextjs':
         specifier: ^0.12.0
         version: 0.12.0(typescript@5.9.3)(zod@3.25.76)
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/foundations/payments:
+    dependencies:
+      '@disco/env':
+        specifier: workspace:*
+        version: link:../env
+      stripe:
+        specifier: ^20.4.1
+        version: 20.4.1(@types/node@24.13.3)
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/foundations/query-client:
+    dependencies:
+      '@tanstack/react-query':
+        specifier: ^5.69.0
+        version: 5.101.4(react@19.2.8)
+      superjson:
+        specifier: ^2.2.1
+        version: 2.2.6
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/foundations/storage:
+    dependencies:
+      '@vercel/blob':
+        specifier: ^2.6.1
+        version: 2.8.0
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/foundations/trpc:
+    dependencies:
+      '@disco/auth':
+        specifier: workspace:*
+        version: link:../auth
+      '@disco/db':
+        specifier: workspace:*
+        version: link:../db
+      '@trpc/server':
+        specifier: ^11.0.0
+        version: 11.18.0(typescript@5.9.3)
+      superjson:
+        specifier: ^2.2.1
+        version: 2.2.6
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+    devDependencies:
+      '@disco/eslint-config':
+        specifier: workspace:*
+        version: link:../../../tooling/eslint
+      '@disco/typescript-config':
+        specifier: workspace:*
+        version: link:../../../tooling/typescript
+      '@disco/vitest-config':
+        specifier: workspace:*
+        version: link:../../../tooling/vitest
+      eslint:
+        specifier: ^9.29.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.12)
+
+  packages/foundations/validators:
+    dependencies:
       zod:
         specifier: ^3.24.2
         version: 3.25.76

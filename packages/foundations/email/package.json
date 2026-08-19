@@ -1,0 +1,27 @@
+{
+  "name": "@disco/email",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@disco/env": "workspace:*",
+    "qrcode": "^1.5.4",
+    "resend": "^6.9.4"
+  },
+  "devDependencies": {
+    "@disco/eslint-config": "workspace:*",
+    "@disco/typescript-config": "workspace:*",
+    "@disco/vitest-config": "workspace:*",
+    "@types/qrcode": "^1.5.6",
+    "eslint": "^9.29.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

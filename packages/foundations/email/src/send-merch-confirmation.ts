@@ -1,6 +1,6 @@
-import { resend } from "~/server/resend";
+import { resend } from "./resend";
 
-interface SendMerchConfirmationParams {
+export interface SendMerchConfirmationParams {
   buyerEmail: string;
   buyerName: string;
   itemTitle: string;

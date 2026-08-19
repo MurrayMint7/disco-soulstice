@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { api } from "~/trpc/react";
-import { uploadImageFile, detectImageAspect } from "~/lib/upload-image";
+import { uploadImageFile, detectImageAspect } from "@disco/storage/client";
 
 export default function AdminGalleryPage() {
   const utils = api.useUtils();

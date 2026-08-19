@@ -1,26 +1,23 @@
-import { z } from "zod";
 import { eq, and, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { clerkClient } from "@clerk/nextjs/server";
 
-import { createTRPCRouter, authedProcedure } from "~/server/api/trpc";
+import { getUserProfile } from "@disco/auth";
+import { createPaymentIntent } from "@disco/payments";
+import { createTRPCRouter, authedProcedure } from "@disco/trpc";
 import { orders, events, tickets } from "@disco/db/schema";
-import { stripe } from "~/server/stripe";
+import {
+  orderByIdSchema,
+  orderByPaymentIntentSchema,
+  ticketCheckoutSchema,
+} from "@disco/validators";
 
 export const orderRouter = createTRPCRouter({
   createCheckoutSession: authedProcedure
-    .input(
-      z.object({
-        eventId: z.number(),
-        quantity: z.number().int().min(1).max(4),
-      }),
-    )
+    .input(ticketCheckoutSchema)
     .mutation(async ({ ctx, input }) => {
-      const client = await clerkClient();
-      const user = await client.users.getUser(ctx.userId);
-      const buyerEmail = user.emailAddresses[0]?.emailAddress ?? "";
-      const buyerName =
-        `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
+      const { email: buyerEmail, name: buyerName } = await getUserProfile(
+        ctx.userId,
+      );
 
       return ctx.db.transaction(async (tx) => {
         const [event] = await tx
@@ -59,9 +56,8 @@ export const orderRouter = createTRPCRouter({
 
         const totalInPence = event.priceInPence * input.quantity;
 
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: totalInPence,
-          currency: "gbp",
+        const paymentIntent = await createPaymentIntent({
+          amountInPence: totalInPence,
           metadata: {
             type: "event",
             eventId: event.id.toString(),
@@ -89,7 +85,7 @@ export const orderRouter = createTRPCRouter({
   }),
 
   getById: authedProcedure
-    .input(z.object({ orderId: z.number() }))
+    .input(orderByIdSchema)
     .query(async ({ ctx, input }) => {
       const [order] = await ctx.db
         .select()
@@ -113,7 +109,7 @@ export const orderRouter = createTRPCRouter({
     }),
 
   getByPaymentIntent: authedProcedure
-    .input(z.object({ paymentIntentId: z.string() }))
+    .input(orderByPaymentIntentSchema)
     .query(async ({ ctx, input }) => {
       const [order] = await ctx.db
         .select()

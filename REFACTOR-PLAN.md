@@ -7,7 +7,7 @@ with **identical functionality** — auth, billing, email, uploads, admin, all o
 - **Branch:** `refactor/turborepo-monorepo` (off `origin/main` @ `369c535`)
 - **Merge path:** single PR into `main` when the refactor is complete
 - **Starter baseline:** `turborepo-starter` `main` @ `ab12a85`
-- **Status:** Phases 0, 1 and 2 complete (`pnpm verify` green). Phase 3 is next.
+- **Status:** Phases 0–3 complete (`pnpm verify` green). Phase 4 is next.
   See [Implementation log](#implementation-log).
 
 > Delete this file before merging the PR, or fold it into `docs/`. It is *not*
@@ -414,6 +414,84 @@ consumed as TypeScript source, so Next.js compiles them itself. Build confirmed 
 
 **Also:** `@t3-oss/env-nextjs` and `postgres` dropped from the app's `package.json` — the
 app no longer imports either directly; they belong to `@disco/env` and `@disco/db` now.
+
+
+### Phase 3 — Remaining foundations ✅
+
+Seven packages: `@disco/auth`, `@disco/payments`, `@disco/email`, `@disco/storage`,
+`@disco/validators`, `@disco/query-client`, `@disco/trpc`. Every file that had an
+existing home moved by `git mv` (recorded as renames): `server/stripe.ts` → payments,
+`server/resend.ts` + `server/email/*` → email, `lib/upload-image.ts` → storage,
+`trpc/query-client.ts` → query-client, `server/api/trpc.ts` → trpc. `pnpm verify` green
+across all five gates; the build emits the same 31 routes, and `/api/webhooks/stripe`,
+`/api/trpc/[trpc]` and `/api/blob/upload` are unmoved.
+
+**Gate met:** `grep -rn "@clerk/nextjs" apps packages` returns only `@disco/auth` and
+`apps/nextjs/src/middleware.ts`.
+
+**Four things the plan did not anticipate:**
+
+1. **Clerk's *React* surface had to move too, or the gate was unmeetable.**
+   `ClerkProvider`, `SignIn`, `SignUp`, `useAuth`, `SignInButton` and `UserButton` are
+   imported by four app files, and the plan's gate allows `@clerk/nextjs` in exactly one
+   app file. So `@disco/auth` gained a second entry point, `@disco/auth/react`, that
+   re-exports them. Clerk's own modules carry their `"use client"` directives, so the
+   client boundary stays inside Clerk and the re-export needs no directive of its own —
+   confirmed by a green build with the sign-in/sign-up routes still rendering.
+
+2. **`requireAdmin` cannot throw a `TRPCError` without inverting the seam.** The plan
+   specified `requireAdmin(userId)` and a test seam asserting `FORBIDDEN` / `UNAUTHORIZED`,
+   but a foundation that owns Clerk should not also own tRPC's error type — and the blob
+   upload route, the other caller, is not a tRPC procedure at all. `@disco/auth` therefore
+   exports an `AuthorizationError` carrying `code: "UNAUTHORIZED" | "FORBIDDEN"`, and each
+   caller maps it: `@disco/trpc` to `new TRPCError({ code })`, the blob route to its
+   existing 400 + `error.message` response. **Client-visible behaviour is unchanged** —
+   the route already threw `new Error("Unauthorized")` / `new Error("Forbidden")` with
+   those exact messages, and the tRPC mapping deliberately drops the message so the code
+   stays the message, as before.
+
+3. **The shared TS base has no DOM lib, and two foundations need one.**
+   `@disco/typescript-config/package.json` sets `lib: ["ES2022"]`, so `upload-image.ts`'s
+   `new window.Image()` failed to compile the moment it left the app. Added
+   `tooling/typescript/tsconfig/browser.json` (DOM + DOM.Iterable + `jsx: react-jsx`) and
+   pointed `@disco/storage`, `@disco/query-client` and `@disco/auth` at it. **This is the
+   config `@disco/ui` will want** when it arrives. Note `@disco/typescript-config`'s
+   `exports` map is explicit — a new tsconfig is invisible until it is listed there.
+
+4. **A "pure vendor seam" package cannot own an auth check.** The `/api/blob/upload`
+   token policy is half vendor config (content types, size cap) and half authorization.
+   `handleImageUpload` therefore takes an injected `authorize` callback, so `@disco/storage`
+   never imports `@disco/auth`. Same dependency-injection shape the services get in Phase 4.
+
+**Also worth recording:**
+
+- **Both lazy `Proxy` clients moved verbatim**, with the commit that introduced each
+  (`e130d5d`, `233c125`) named in a comment above them, so the next reader does not
+  "clean up" the indirection and rebreak `next build`.
+- **`@disco/payments` exposes `createPaymentIntent({ amountInPence, metadata })`.** Every
+  payment this app takes is GBP, so the currency stopped being a parameter; the two
+  routers that create intents no longer name it.
+- **`getUserProfile(userId)` absorbed three duplicated `clerkClient()` blocks** — in
+  `trpc.ts`, `order.ts` and `merch.ts` — that each built `buyerEmail` / `buyerName` the
+  same way.
+- **`@disco/validators` now owns every router input schema**, so `z` has left every
+  router except `post.ts`, which is deleted in Phase 5. Schemas are grouped by domain
+  (`event` · `order` · `merch` · `gallery` · `admin`) and re-exported flat.
+- **`GalleryAspect` is now declared twice** — as a literal union in `@disco/storage/client`
+  (the return type of `detectImageAspect`) and as a zod enum in `@disco/validators`. They
+  are structurally identical. Left alone rather than making a vendor seam depend on a
+  validator package; worth collapsing if a third declaration ever appears.
+- **Three unit tests landed early**, in `@disco/auth`, covering the `hasAdminRole`
+  predicate and `AuthorizationError`. The plan puts tests in Phase 4, but the predicate
+  was extracted here specifically to make the rule testable without a network, so the
+  test came with it.
+- **`stripe`, `resend`, `qrcode` and `@types/qrcode` are gone from `apps/nextjs`.**
+  `@vercel/blob` stays, for one reason only: `migrate-images-to-blob.ts` still calls `put`.
+  That script is spent (the Blob migration shipped in `369c535`) and its only import,
+  `gallery-data.ts`, has no other consumer — **delete both in Phase 6**, and the app's last
+  direct blob import goes with them.
+- **No `@source` directives yet.** Still nothing in `packages/` that contains a Tailwind
+  class. This becomes real only if `@disco/ui` is created.
 
 
 ## Test seams

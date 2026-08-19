@@ -1,4 +1,4 @@
-import { SignIn } from "@clerk/nextjs";
+import { SignIn } from "@disco/auth/react";
 
 export default function SignInPage() {
   return (

@@ -1,7 +1,7 @@
 import QRCode from "qrcode";
-import { resend } from "~/server/resend";
+import { resend } from "./resend";
 
-interface SendTicketConfirmationParams {
+export interface SendTicketConfirmationParams {
   buyerEmail: string;
   buyerName: string;
   eventTitle: string;

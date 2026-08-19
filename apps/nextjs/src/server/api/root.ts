@@ -4,7 +4,7 @@ import { orderRouter } from "~/server/api/routers/order";
 import { adminRouter } from "~/server/api/routers/admin";
 import { merchRouter } from "~/server/api/routers/merch";
 import { galleryRouter } from "~/server/api/routers/gallery";
-import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+import { createCallerFactory, createTRPCRouter } from "@disco/trpc";
 
 /**
  * This is the primary router for your server.
