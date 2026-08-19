@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { clerkClient } from "@clerk/nextjs/server";
 
 import { createTRPCRouter, authedProcedure } from "~/server/api/trpc";
-import { orders, events, tickets } from "~/server/db/schema";
+import { orders, events, tickets } from "@disco/db/schema";
 import { stripe } from "~/server/stripe";
 
 export const orderRouter = createTRPCRouter({

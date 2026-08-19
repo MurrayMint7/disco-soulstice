@@ -1,5 +1,5 @@
-import { db } from "~/server/db";
-import { events } from "~/server/db/schema";
+import { db } from "./index";
+import { events } from "./schema";
 
 async function main() {
   await db.insert(events).values([

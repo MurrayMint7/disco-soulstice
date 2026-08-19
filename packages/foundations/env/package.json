@@ -1,0 +1,25 @@
+{
+  "name": "@disco/env",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@t3-oss/env-nextjs": "^0.12.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@disco/eslint-config": "workspace:*",
+    "@disco/typescript-config": "workspace:*",
+    "@disco/vitest-config": "workspace:*",
+    "eslint": "^9.29.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

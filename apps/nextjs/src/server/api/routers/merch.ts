@@ -10,7 +10,7 @@ import {
   authedProcedure,
   adminProcedure,
 } from "~/server/api/trpc";
-import { merchItems, merchSizes, merchOrders } from "~/server/db/schema";
+import { merchItems, merchSizes, merchOrders } from "@disco/db/schema";
 import { stripe } from "~/server/stripe";
 
 export const merchRouter = createTRPCRouter({

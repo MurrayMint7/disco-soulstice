@@ -8,7 +8,7 @@ import {
   publicProcedure,
   adminProcedure,
 } from "~/server/api/trpc";
-import { galleryAlbums, galleryImages } from "~/server/db/schema";
+import { galleryAlbums, galleryImages } from "@disco/db/schema";
 
 export const galleryRouter = createTRPCRouter({
   listAlbums: publicProcedure.query(async ({ ctx }) => {

@@ -11,7 +11,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 
-import { db } from "~/server/db";
+import { db } from "@disco/db";
 
 /**
  * 1. CONTEXT

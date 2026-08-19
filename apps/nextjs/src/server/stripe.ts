@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { env } from "~/env";
+import { env } from "@disco/env";
 
 let _stripe: Stripe | undefined;
 

@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { stripe } from "~/server/stripe";
-import { db } from "~/server/db";
+import { db } from "@disco/db";
 import {
   orders,
   events,
@@ -8,12 +8,12 @@ import {
   merchOrders,
   merchSizes,
   merchItems,
-} from "~/server/db/schema";
+} from "@disco/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { sendTicketConfirmation } from "~/server/email/send-ticket-confirmation";
 import { sendMerchConfirmation } from "~/server/email/send-merch-confirmation";
 import { v4 as uuidv4 } from "uuid";
-import { env } from "~/env";
+import { env } from "@disco/env";
 
 export const dynamic = "force-dynamic";
 

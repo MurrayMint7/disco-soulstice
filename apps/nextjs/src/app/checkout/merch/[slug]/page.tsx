@@ -10,7 +10,7 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { api } from "~/trpc/react";
-import { env } from "~/env";
+import { env } from "@disco/env";
 import { Header } from "~/app/_components/header";
 import { Footer } from "~/app/_components/footer";
 

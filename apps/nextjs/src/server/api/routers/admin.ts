@@ -2,7 +2,7 @@ import { z } from "zod";
 import { eq, sql, desc } from "drizzle-orm";
 
 import { createTRPCRouter, adminProcedure } from "~/server/api/trpc";
-import { orders, events, tickets } from "~/server/db/schema";
+import { orders, events, tickets } from "@disco/db/schema";
 
 export const adminRouter = createTRPCRouter({
   getStats: adminProcedure.query(async ({ ctx }) => {

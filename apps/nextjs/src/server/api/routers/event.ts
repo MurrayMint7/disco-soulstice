@@ -8,7 +8,7 @@ import {
   publicProcedure,
   adminProcedure,
 } from "~/server/api/trpc";
-import { events, orders } from "~/server/db/schema";
+import { events, orders } from "@disco/db/schema";
 
 export const eventRouter = createTRPCRouter({
   list: publicProcedure.query(async ({ ctx }) => {

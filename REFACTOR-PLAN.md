@@ -7,7 +7,7 @@ with **identical functionality** — auth, billing, email, uploads, admin, all o
 - **Branch:** `refactor/turborepo-monorepo` (off `origin/main` @ `369c535`)
 - **Merge path:** single PR into `main` when the refactor is complete
 - **Starter baseline:** `turborepo-starter` `main` @ `ab12a85`
-- **Status:** Phases 0 and 1 complete (`pnpm verify` green). Phase 2 is next.
+- **Status:** Phases 0, 1 and 2 complete (`pnpm verify` green). Phase 3 is next.
   See [Implementation log](#implementation-log).
 
 > Delete this file before merging the PR, or fold it into `docs/`. It is *not*
@@ -321,12 +321,16 @@ Also ported into the shared tooling so behaviour is unchanged from `main`:
 `no-misused-promises`, the `drizzle/enforce-{delete,update}-with-where` rules
 (now also covering `tx`), `verbatimModuleSyntax`, and `prettier-plugin-tailwindcss`.
 
-**Outstanding — must be done in the Vercel dashboard, cannot be scripted:**
+**Done in the Vercel dashboard (2026-08-19) — could not be scripted:**
 
 - Root Directory → `apps/nextjs`
 - Install Command → `pnpm install --frozen-lockfile`
 - Build Command → `pnpm db:push && pnpm build`
-- Then confirm a preview deploy is green **before starting Phase 2**.
+- Production deploy of `main` green on redeploy with the build cache cleared.
+
+Until Root Directory was changed, every build failed with `No Next.js version detected` —
+Vercel read the root `package.json`, which has no `next`. Changing the setting does **not**
+trigger a rebuild on its own; a manual redeploy is required.
 
 `.vercel/repo.json` and `.github/workflows/ci.yml` are already updated in the repo.
 
@@ -367,6 +371,50 @@ unreviewed DDL-on-deploy with SQL that lands in git and gets read. Out of scope 
 this refactor preserves existing behaviour.
 
 ---
+
+### Phase 2 — Foundations: `@disco/env` and `@disco/db` ✅
+
+`src/env.js` → `packages/foundations/env/src/index.ts` (TypeScript; all 14 variables and
+`skipValidation` unchanged). `schema.ts`, the connection and `seed.ts` → `@disco/db`,
+all via `git mv`. `schema.ts` is **byte-identical** to `HEAD` — verified by diff, not by
+eye. 21 import sites rewritten to `@disco/env` / `@disco/db` / `@disco/db/schema`.
+`pnpm verify` green across all five gates.
+
+**Three deviations from the plan, each with a reason:**
+
+1. **`drizzle.config.ts` and the `db:*` scripts stay in `apps/nextjs`.** The plan had
+   `@disco/db` owning them, with the app delegating via `pnpm --filter`. But `drizzle-kit`
+   auto-loads `.env` from its working directory, and `.env` lives in `apps/nextjs`
+   because that is the only place Next.js will read it from. Moving the config would have
+   meant either an explicit `--env-file=../../../apps/nextjs/.env` (a foundation reaching
+   back into an app) or a root `.env` plus a symlink. Keeping the config in the app is
+   simpler, leaves the Vercel build command untouched, and removes an entire class of
+   env-loading risk from the one command that writes to the live database. The config now
+   points at `../../packages/foundations/db/src/schema.ts`.
+
+   **Verified without touching the database:** `drizzle-kit export --sql` emits all 9
+   tables with the `disco-soulstice_` prefix intact, including `post`. If the schema path
+   had been wrong, `db:push` would have seen an empty schema and proposed dropping every
+   live table.
+
+2. **`migrate-images-to-blob.ts` does not move to `@disco/db`.** It imports
+   `~/app/gallery/gallery-data` — app-level data — so a foundation cannot own it without
+   inverting the layer graph. It stays in `apps/nextjs/src/server/db/`, now importing
+   `@disco/db`. It is a spent one-off (the Blob migration shipped in `369c535`); consider
+   deleting it and `gallery-data.ts`, its only consumer, in a later phase.
+
+3. **No `@source` directives added to `globals.css` yet.** Plan item 3 anticipated them,
+   but neither `@disco/env` nor `@disco/db` contains a Tailwind class. This becomes real
+   in Phase 3 with `@disco/ui`.
+
+**Also changed:** `next.config.mjs` → `next.config.ts`, because the build-time env import
+is now a TypeScript workspace package that Node cannot load from a `.mjs` config. It
+declares `transpilePackages: ["@disco/db", "@disco/env"]` — the `@disco/*` packages are
+consumed as TypeScript source, so Next.js compiles them itself. Build confirmed green.
+
+**Also:** `@t3-oss/env-nextjs` and `postgres` dropped from the app's `package.json` — the
+app no longer imports either directly; they belong to `@disco/env` and `@disco/db` now.
+
 
 ## Test seams
 

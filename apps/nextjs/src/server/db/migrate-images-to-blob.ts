@@ -1,8 +1,8 @@
 import { put } from "@vercel/blob";
 import { eq } from "drizzle-orm";
 
-import { db } from "~/server/db";
-import { events, galleryAlbums, galleryImages } from "~/server/db/schema";
+import { db } from "@disco/db";
+import { events, galleryAlbums, galleryImages } from "@disco/db/schema";
 import { galleryEvents, galleryPhotos } from "~/app/gallery/gallery-data";
 
 async function uploadFromUrl(url: string, pathname: string) {
